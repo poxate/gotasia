@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"time"
 
 	"github.com/sanity-io/litter"
 )
@@ -79,6 +80,8 @@ func (p *Project) Encode(w io.Writer) error {
 }
 
 func (p *Project) encodeTimeline() jobj {
+	timelineId := p.id.gen()
+
 	trackObjs := []jobj{}
 	trackAttributeObjs := []jobj{}
 
@@ -94,7 +97,7 @@ func (p *Project) encodeTimeline() jobj {
 	}
 
 	return jobj{
-		"id": p.id.gen(),
+		"id": timelineId,
 		"sceneTrack": jobj{
 			"scenes": []jobj{{
 				"csml": jobj{
@@ -109,30 +112,25 @@ func (p *Project) encodeTimeline() jobj {
 func (p *Project) encodeTrackMedias(track *Track) []jobj {
 	list := []jobj{}
 
+	var start time.Duration = 0
 	for _, element := range track.Elements {
-		mediaStart := element.MediaStart
-		if mediaStart == nil {
-			mediaStart = &element.Start
-		}
-
-		mediaDuration := element.MediaDuration
-		if mediaDuration == nil {
-			mediaDuration = &element.Duration
-		}
+		start += element.Gap
 
 		list = append(list, jobj{
 			"id":            p.id.gen(),
 			"_type":         getElementType(element),
-			"start":         int(element.Start.Seconds() * editRate),
+			"start":         int(start.Seconds() * editRate),
 			"duration":      int(element.Duration.Seconds() * editRate),
-			"mediaStart":    int(mediaStart.Seconds() * editRate),
-			"mediaDuration": int(mediaDuration.Seconds() * editRate),
+			"mediaStart":    0,
+			"mediaDuration": int(element.Duration.Seconds() * editRate),
 			"def":           p.createDef(element),
 			"parameters": jobj{
 				"translation0": p.coordX(element.Node.width(), element.X),
 				"translation1": p.coordY(element.Node.height(), element.Y),
 			},
 		})
+
+		start += element.Duration + 1
 	}
 
 	return list
