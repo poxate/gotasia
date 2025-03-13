@@ -18,34 +18,74 @@ const (
 const editRate = 705600000
 
 type Project struct {
-	id                    *idTracker
-	BackgroundColor       color.Color
-	Width                 int
-	Height                int
-	AutoNormalizeLoudness bool
-	FrameRate             FrameRate
-	Tracks                []*Track
-	MediaBin              MediaBin
-	MediaItemId           map[*MediaItem]int
+	editRate               int
+	id                     *idTracker
+	_title                 string
+	_targetLoudness        float64
+	_backgroundColor       color.Color
+	_width                 int
+	_height                int
+	_autoNormalizeLoudness bool
+	_frameRate             FrameRate
+	Tracks                 []*Track
+	MediaBin               MediaBin
+	mediaItemId            map[*MediaItem]int
 }
 
 func NewProject(width, height int) *Project {
 	return &Project{
-		id:                    &idTracker{},
-		Width:                 width,
-		Height:                height,
-		AutoNormalizeLoudness: true,
-		FrameRate:             FrameRate60,
-		Tracks:                []*Track{},
-		MediaBin:              MediaBin{},
-		MediaItemId:           map[*MediaItem]int{},
+		id:                     &idTracker{},
+		editRate:               705600000,
+		_targetLoudness:        -18.0,
+		_backgroundColor:       color.Black,
+		_width:                 width,
+		_height:                height,
+		_autoNormalizeLoudness: true,
+		_frameRate:             FrameRate60,
+		Tracks:                 []*Track{},
+		MediaBin:               MediaBin{},
+		mediaItemId:            map[*MediaItem]int{},
 	}
 }
 
+func (p *Project) Title(value string) *Project {
+	p._title = value
+	return p
+}
+
+func (p *Project) TargetLoudness(value float64) *Project {
+	p._targetLoudness = value
+	return p
+}
+
+func (p *Project) BgColor(color color.Color) *Project {
+	p._backgroundColor = color
+	return p
+}
+
+func (p *Project) AutoNormalizeLoudness(value bool) *Project {
+	p._autoNormalizeLoudness = value
+	return p
+}
+
+func (p *Project) FrameRate(value FrameRate) *Project {
+	p._frameRate = value
+	return p
+}
+
+func (p *Project) NewTrack(name string) *Track {
+	track := &Track{
+		Name:     name,
+		Elements: []*Element{},
+	}
+	p.Tracks = append(p.Tracks, track)
+	return track
+}
+
 func (p *Project) width() int {
-	return p.Width
+	return p._width
 }
 
 func (p *Project) height() int {
-	return p.Height
+	return p._height
 }

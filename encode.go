@@ -15,68 +15,138 @@ func (p *Project) Encode(w io.Writer) error {
 		return fmt.Errorf("cannot encode project without at least 1 track")
 	}
 
-	sourcebin := p.encodeSourcebin()
-
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
-	return enc.Encode(jobj{
-		"title":                            "",
-		"description":                      "",
-		"author":                           "",
-		"targetLoudness":                   -18.0,
-		"shouldApplyLoudnessNormalization": p.AutoNormalizeLoudness,
-		"videoFormatFrameRate":             p.FrameRate,
-		"audioFormatSampleRate":            44100,
-		"allowSubFrameEditing":             false,
-		"width":                            p.Width,
-		"height":                           p.Height,
-		"version":                          "8.0",
-		"editRate":                         editRate,
-		"sourceBin":                        sourcebin,
-		"timeline":                         p.encodeTimeline(),
-		"authoringClientName": jobj{
-			"name":     "Camtasia",
-			"platform": "Windows",
-			"version":  "2024.0.1",
+	return enc.Encode(rawProject{
+		Title:                            "",
+		Description:                      "",
+		Author:                           "",
+		TargetLoudness:                   KeepZero(p._targetLoudness),
+		ShouldApplyLoudnessNormalization: p._autoNormalizeLoudness,
+		VideoFormatFrameRate:             int(p._frameRate),
+		AudioFormatSampleRate:            44100,
+		AllowSubFrameEditing:             false,
+		Width:                            KeepZero(p._width),
+		Height:                           KeepZero(p._height),
+		Version:                          "8.0",
+		EditRate:                         editRate,
+		AuthoringClientName: rawAuthoringClientName{
+			Name:     "Camtasia",
+			Platform: "Windows",
+			Version:  "2024.0.1",
 		},
-		"metadata": jobj{
-			"audioNarrationNotes": "",
-			"calloutStyle":        "Basic",
+		Timeline: rawTimeline{
+			ID: p.id.gen(),
+			SceneTrack: rawSceneTrack{
+				Scenes: []rawScene{
+					{
+						Csml: rawCsml{
+							Tracks: p.encodeRawTracks(),
+						},
+					},
+				},
+			},
+			TrackAttributes: p.encodeTrackAttributes(),
+			CaptionAttributes: rawCaptionAttributes{
+				Enabled:                  true,
+				FontName:                 "Arial",
+				FontSize:                 64,
+				BackgroundColor:          []int{0, 0, 0, 191},
+				ForegroundColor:          []int{255, 255, 255, 255},
+				Lang:                     "en",
+				Alignment:                0,
+				DefaultFontSize:          true,
+				Opacity:                  0.5,
+				BackgroundEnabled:        true,
+				BackgroundOnlyAroundText: true,
+			},
+			Gain:                    1.0,
+			LegacyAttenuateAudioMix: false,
+			BackgroundColor:         []int{0, 0, 0, 255},
+		},
+		Metadata: rawMetadata{
+			AutoSaveFile:        "",
+			CanvasZoom:          rawCanvasZoom{Type: "int", Value: 60},
+			Date:                "2025-03-13 08:38:36 AM",
+			IsAutoSave:          rawIsAutoSave{Type: "bool", Value: false},
+			IsStandalone:        rawIsAutoSave{Type: "bool", Value: true},
+			Language:            "ENU",
+			ProfileName:         "",
+			ProjectThumbnail:    "iVBORw0KGgoAAAANSUhEUgAAAoAAAAFoCAYAAADHMkpRAAAAAXNSR0IArs4c6QAAAARnQU1BAACx\r\njwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAZxSURBVHhe7chBDcAwAMSw8ifdFUAQ3BzJn5zX\r\nBQDgV3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAA\r\nu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3IC\r\nALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALAr\r\nJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAA\r\nu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3IC\r\nALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALAr\r\nJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAA\r\nu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3IC\r\nALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALAr\r\nJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAA\r\nu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3IC\r\nALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALAr\r\nJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAA\r\nu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3IC\r\nALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALAr\r\nJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAA\r\nu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3IC\r\nALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALAr\r\nJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAA\r\nu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3IC\r\nALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALAr\r\nJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAA\r\nu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3IC\r\nALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALAr\r\nJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAA\r\nu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3IC\r\nALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALAr\r\nJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAAu3ICALArJwAA\r\nu3ICALArJwAAu3ICALArJwAAu3ICADDp3A/mI7CBEzt/RwAAAABJRU5ErkJggg==",
+			RulerGuidesX:        []interface{}{},
+			RulerGuidesY:        []interface{}{},
+			RulerShowing:        rawIsAutoSave{Type: "bool", Value: false},
+			Title:               "daword",
+			AudioNarrationNotes: "",
+			CalloutStyle:        "Basic",
 		},
 	})
 }
 
-func (p *Project) encodeTimeline() jobj {
-	timelineId := p.id.gen()
-
-	trackObjs := []jobj{}
-	trackAttributeObjs := []jobj{}
+func (p *Project) encodeRawTracks() []rawTrack {
+	rawTracks := []rawTrack{}
 
 	for i, track := range p.Tracks {
-		trackObjs = append(trackObjs, jobj{
-			"trackIndex": i,
-			"medias":     p.encodeTrackMedias(track),
-		})
-
-		trackAttributeObjs = append(trackAttributeObjs, jobj{
-			"ident": track.Name,
+		_ = track
+		rawTracks = append(rawTracks, rawTrack{
+			TrackIndex: i,
+			Medias:     []interface{}{},
 		})
 	}
 
-	bgR, bgG, bgB, bgA := colorTo255(p.BackgroundColor)
+	return rawTracks
 
-	return jobj{
-		"id": timelineId,
-		"sceneTrack": jobj{
-			"scenes": []jobj{{
-				"csml": jobj{
-					"tracks": trackObjs,
-				},
-			}},
-		},
-		"trackAttributes": trackAttributeObjs,
-		"backgroundColor": []uint32{bgR, bgG, bgB, bgA},
+	// timelineId := p.id.gen()
+
+	// trackObjs := []jobj{}
+	// trackAttributeObjs := []jobj{}
+
+	// for i, track := range p.Tracks {
+	// 	trackObjs = append(trackObjs, jobj{
+	// 		"trackIndex": i,
+	// 		"medias":     p.encodeTrackMedias(track),
+	// 	})
+
+	// 	trackAttributeObjs = append(trackAttributeObjs, jobj{
+	// 		"ident": track.Name,
+	// 	})
+	// }
+
+	// bgR, bgG, bgB, bgA := colorTo255(p._backgroundColor)
+
+	// return jobj{
+	// 	"id": timelineId,
+	// 	"sceneTrack": jobj{
+	// 		"scenes": []jobj{{
+	// 			"csml": jobj{
+	// 				"tracks": trackObjs,
+	// 			},
+	// 		}},
+	// 	},
+	// 	"trackAttributes": trackAttributeObjs,
+	// 	"backgroundColor": []uint32{bgR, bgG, bgB, bgA},
+	// }
+}
+
+func (p *Project) encodeTrackAttributes() []rawTrackAttribute {
+	attributes := []rawTrackAttribute{}
+
+	for _, track := range p.Tracks {
+		attributes = append(attributes, rawTrackAttribute{
+			Ident:       track.Name,
+			AudioMuted:  false,
+			VideoHidden: false,
+			Magnetic:    false,
+			Matte:       0,
+			Solo:        false,
+			Metadata: rawTrackAttributeMetadata{
+				IsLocked:       "False",
+				WinTrackHeight: "56",
+			},
+		})
 	}
+
+	return attributes
 }
 
 func (p *Project) encodeTrackMedias(track *Track) []jobj {
@@ -193,7 +263,7 @@ func (p *Project) encodeTrackMedias(track *Track) []jobj {
 			obj["def"] = node.encodeDef()
 		case *ImageFile:
 			obj["_type"] = "IMFile"
-			obj["src"] = p.MediaItemId[node.Src]
+			obj["src"] = p.mediaItemId[node.Src]
 		default:
 			panic("unknown element type: " + litter.Sdump(element.node))
 		}
@@ -211,7 +281,7 @@ func (p *Project) encodeSourcebin() []jobj {
 	for _, item := range p.MediaBin {
 		if item.Type == ImageMediaItem {
 			id := p.id.gen()
-			p.MediaItemId[item] = id
+			p.mediaItemId[item] = id
 			list = append(list, jobj{
 				"id":   id,
 				"src":  item.Src,
@@ -238,13 +308,13 @@ func (p *Project) encodeSourcebin() []jobj {
 }
 
 func (p *Project) coordX(width, posX int) int {
-	pCenter := p.Width / 2
+	pCenter := p._width / 2
 	eCenter := posX + (width / 2)
 	return eCenter - pCenter
 }
 
 func (p *Project) coordY(height, posY int) int {
-	pCenter := p.Height / 2
+	pCenter := p._height / 2
 	eCenter := posY + (height / 2)
 	return pCenter - eCenter
 }

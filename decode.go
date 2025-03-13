@@ -19,17 +19,17 @@ func NewDecoder(src io.Reader) *Decoder {
 
 func (dec *Decoder) Decode() (*Project, error) {
 	p := NewProject(0, 0)
-	rawP := rawProject{}
+	rawP := rawProjectD{}
 	if err := json.NewDecoder(dec.src).Decode(&rawP); err != nil {
 		return nil, fmt.Errorf("failed to decode project: %w", err)
 	}
 
 	dec.editRate = rawP.EditRate
-	p.Width = int(rawP.Width)
-	p.Height = int(rawP.Height)
-	p.AutoNormalizeLoudness = rawP.ShouldApplyLoudnessNormalization
-	p.FrameRate = FrameRate(rawP.VideoFormatFrameRate)
-	p.BackgroundColor = color.NRGBA{
+	p._width = int(rawP.Width)
+	p._height = int(rawP.Height)
+	p._autoNormalizeLoudness = rawP.ShouldApplyLoudnessNormalization
+	p._frameRate = FrameRate(rawP.VideoFormatFrameRate)
+	p._backgroundColor = color.NRGBA{
 		R: uint8(rawP.Timeline.BackgroundColor[0]),
 		G: uint8(rawP.Timeline.BackgroundColor[1]),
 		B: uint8(rawP.Timeline.BackgroundColor[2]),

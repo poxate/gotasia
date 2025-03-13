@@ -1,6 +1,9 @@
 package gotasia
 
-import "image/color"
+import (
+	"image/color"
+	"strconv"
+)
 
 func colorTo255(c color.Color) (r, g, b, a uint32) {
 	if c == nil {
@@ -33,4 +36,13 @@ func colorTo1Scale(c color.Color) (r, g, b, a float64) {
 	fB := float64(ib) / 65535.0
 	fA := float64(ia) / 65535.0
 	return fR, fG, fB, fA
+}
+
+type KeepZero float64
+
+func (f KeepZero) MarshalJSON() ([]byte, error) {
+	if float64(f) == float64(int(f)) {
+		return []byte(strconv.FormatFloat(float64(f), 'f', 1, 32)), nil
+	}
+	return []byte(strconv.FormatFloat(float64(f), 'f', -1, 32)), nil
 }

@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-type rawProject struct {
+type rawProjectD struct {
 	Title                            string  `json:"title"`
 	Description                      string  `json:"description"`
 	Author                           string  `json:"author"`
