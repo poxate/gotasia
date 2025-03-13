@@ -47,10 +47,12 @@ func (dec *Decoder) Decode() (*Project, error) {
 		var now time.Duration
 		for _, rawMedia := range rawTrack.Medias {
 			track.Elements = append(track.Elements, &Element{
-				gap:      dec.rawToDuration(rawMedia.Start) - now,
-				duration: dec.rawToDuration(rawMedia.Duration),
-				scale:    1,
-				node:     dec.decodeNode(&rawMedia),
+				gap:        dec.rawToDuration(rawMedia.Start) - now,
+				duration:   dec.rawToDuration(rawMedia.Duration),
+				scaleX:     1,
+				scaleY:     1,
+				node:       dec.decodeNode(&rawMedia),
+				Animations: []*Animation{},
 			})
 		}
 

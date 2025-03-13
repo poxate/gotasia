@@ -136,25 +136,25 @@ type rawMedia struct {
 	ID   int    `json:"id"`
 	Type string `json:"_type"`
 	Def  struct {
-		Kind                 string                    `json:"kind"`
-		Shape                string                    `json:"shape"`
-		Style                string                    `json:"style"`
-		CornerRadius         any                       `json:"corner-radius"`
-		EnableLigatures      any                       `json:"enable-ligatures"`
-		Width                rawMaybeKeyframe[float64] `json:"width"`
-		Height               rawMaybeKeyframe[float64] `json:"height"`
-		LineSpacing          any                       `json:"line-spacing"`
-		TextStrokeAlignment  any                       `json:"text-stroke-alignment"`
-		TextStrokeColorAlpha any                       `json:"text-stroke-color-alpha"`
-		TextStrokeColorBlue  any                       `json:"text-stroke-color-blue"`
-		TextStrokeColorGreen any                       `json:"text-stroke-color-green"`
-		TextStrokeColorRed   any                       `json:"text-stroke-color-red"`
-		TextStrokeWidth      any                       `json:"text-stroke-width"`
-		WordWrap             any                       `json:"word-wrap"`
-		HorizontalAlignment  string                    `json:"horizontal-alignment"`
-		ResizeBehavior       string                    `json:"resize-behavior"`
-		Text                 string                    `json:"text"`
-		VerticalAlignment    string                    `json:"vertical-alignment"`
+		Kind                 string                     `json:"kind"`
+		Shape                string                     `json:"shape"`
+		Style                string                     `json:"style"`
+		CornerRadius         any                        `json:"corner-radius"`
+		EnableLigatures      any                        `json:"enable-ligatures"`
+		Width                rawMaybeKeyframes[float64] `json:"width"`
+		Height               rawMaybeKeyframes[float64] `json:"height"`
+		LineSpacing          any                        `json:"line-spacing"`
+		TextStrokeAlignment  any                        `json:"text-stroke-alignment"`
+		TextStrokeColorAlpha any                        `json:"text-stroke-color-alpha"`
+		TextStrokeColorBlue  any                        `json:"text-stroke-color-blue"`
+		TextStrokeColorGreen any                        `json:"text-stroke-color-green"`
+		TextStrokeColorRed   any                        `json:"text-stroke-color-red"`
+		TextStrokeWidth      any                        `json:"text-stroke-width"`
+		WordWrap             any                        `json:"word-wrap"`
+		HorizontalAlignment  string                     `json:"horizontal-alignment"`
+		ResizeBehavior       string                     `json:"resize-behavior"`
+		Text                 string                     `json:"text"`
+		VerticalAlignment    string                     `json:"vertical-alignment"`
 		Font                 struct {
 			ColorBlue  any `json:"color-blue"`
 			ColorGreen any `json:"color-green"`
@@ -193,18 +193,8 @@ type rawMedia struct {
 				Duration int     `json:"duration"`
 			} `json:"keyframes"`
 		} `json:"translation1"`
-		Translation2 struct {
-			Type         string  `json:"type"`
-			DefaultValue float64 `json:"defaultValue"`
-			Keyframes    []struct {
-				EndTime  int     `json:"endTime"`
-				Time     int     `json:"time"`
-				Value    float64 `json:"value"`
-				Interp   string  `json:"interp"`
-				Duration int     `json:"duration"`
-			} `json:"keyframes"`
-		} `json:"translation2"`
-		Rotation1 struct {
+		Translation2 rawMaybeKeyframes[float64] `json:"translation2"`
+		Rotation1    struct {
 			Type         string  `json:"type"`
 			DefaultValue float64 `json:"defaultValue"`
 			Keyframes    []struct {
@@ -215,78 +205,21 @@ type rawMedia struct {
 				Duration int     `json:"duration"`
 			} `json:"keyframes"`
 		} `json:"rotation1"`
-		Shear1 struct {
-			Type         string  `json:"type"`
-			DefaultValue float64 `json:"defaultValue"`
-			Keyframes    []struct {
-				EndTime  int     `json:"endTime"`
-				Time     int     `json:"time"`
-				Value    float64 `json:"value"`
-				Interp   string  `json:"interp"`
-				Duration int     `json:"duration"`
-			} `json:"keyframes"`
-		} `json:"shear1"`
-		Scale0 struct {
-			Type         string  `json:"type"`
-			DefaultValue float64 `json:"defaultValue"`
-			Keyframes    []struct {
-				EndTime  int     `json:"endTime"`
-				Time     int     `json:"time"`
-				Value    float64 `json:"value"`
-				Duration int     `json:"duration"`
-			} `json:"keyframes"`
-		} `json:"scale0"`
-		Scale1 struct {
-			Type         string  `json:"type"`
-			DefaultValue float64 `json:"defaultValue"`
-			Keyframes    []struct {
-				EndTime  int     `json:"endTime"`
-				Time     int     `json:"time"`
-				Value    float64 `json:"value"`
-				Duration int     `json:"duration"`
-			} `json:"keyframes"`
-		} `json:"scale1"`
-		GeometryCrop0 any `json:"geometryCrop0"`
-		GeometryCrop1 any `json:"geometryCrop1"`
-		GeometryCrop2 any `json:"geometryCrop2"`
-		GeometryCrop3 any `json:"geometryCrop3"`
+		Shear1        rawMaybeKeyframes[float64] `json:"shear1"`
+		Scale0        rawMaybeKeyframes[float64] `json:"scale0"`
+		Scale1        rawMaybeKeyframes[float64] `json:"scale1"`
+		GeometryCrop0 any                        `json:"geometryCrop0"`
+		GeometryCrop1 any                        `json:"geometryCrop1"`
+		GeometryCrop2 any                        `json:"geometryCrop2"`
+		GeometryCrop3 any                        `json:"geometryCrop3"`
 	} `json:"parameters"`
 	Effects []struct {
 		EffectName string `json:"effectName"`
 		Bypassed   bool   `json:"bypassed"`
 		Category   string `json:"category"`
 		Parameters struct {
-			Radius struct {
-				Type         string  `json:"type"`
-				DefaultValue float64 `json:"defaultValue"`
-				Interp       string  `json:"interp"`
-				UIHints      struct {
-					UserInterfaceType int `json:"userInterfaceType"`
-					UnitType          int `json:"unitType"`
-				} `json:"uiHints"`
-				Keyframes []struct {
-					EndTime  int     `json:"endTime"`
-					Time     int     `json:"time"`
-					Value    float64 `json:"value"`
-					Interp   string  `json:"interp,omitempty"`
-					Duration int     `json:"duration"`
-				} `json:"keyframes"`
-			} `json:"radius"`
-			Intensity struct {
-				Type         string  `json:"type"`
-				DefaultValue float64 `json:"defaultValue"`
-				Interp       string  `json:"interp"`
-				UIHints      struct {
-					UserInterfaceType int `json:"userInterfaceType"`
-					UnitType          int `json:"unitType"`
-				} `json:"uiHints"`
-				Keyframes []struct {
-					EndTime  int     `json:"endTime"`
-					Time     int     `json:"time"`
-					Value    float64 `json:"value"`
-					Duration int     `json:"duration"`
-				} `json:"keyframes"`
-			} `json:"intensity"`
+			Radius    rawMaybeKeyframes[float64] `json:"radius"`
+			Intensity rawMaybeKeyframes[float64] `json:"intensity"`
 		} `json:"parameters"`
 		Metadata struct {
 			DefaultGlowIntensity struct {
@@ -420,27 +353,28 @@ type rawMedia struct {
 	TrimStartSum int `json:"trimStartSum,omitempty"`
 }
 
-type rawMaybeKeyframe[T any] struct {
+type rawMaybeKeyframes[T any] struct {
 	// may eitheer be a static value of type T, or a keyframe of type rawKeyframe[T]
 	Static      bool
 	StaticValue T
-	Keyframe    rawKeyframe[T]
+	Keyframe    rawKeyframes[T]
 }
 
-type rawKeyframe[T any] struct {
-	Type         string `json:"type"`
-	DefaultValue T      `json:"defaultValue"`
-	Keyframes    []struct {
-		EndTime  int    `json:"endTime"`
-		Time     int    `json:"time"`
-		Value    T      `json:"value"`
-		Interp   string `json:"interp,omitempty"`
-		Duration int    `json:"duration"`
-	} `json:"keyframes"`
+type rawKeyframes[T any] struct {
+	Type         string        `json:"type"`
+	DefaultValue T             `json:"defaultValue"`
+	Keyframes    []keyframe[T] `json:"keyframes"`
+}
+type keyframe[T any] struct {
+	EndTime  int    `json:"endTime"`
+	Time     int    `json:"time"`
+	Value    T      `json:"value"`
+	Interp   string `json:"interp,omitempty"`
+	Duration int    `json:"duration"`
 }
 
 // create a custom unmarshal for rawMaybeKeyframe that checks if the value is T, and if so, marshal it as a static value, else, marhsal in to rawkeyframe
-func (r *rawMaybeKeyframe[T]) getFirstValue() T {
+func (r *rawMaybeKeyframes[T]) getFirstValue() T {
 	if r.Static {
 		return r.StaticValue
 	} else {
@@ -448,7 +382,16 @@ func (r *rawMaybeKeyframe[T]) getFirstValue() T {
 	}
 }
 
-func (r *rawMaybeKeyframe[T]) UnmarshalJSON(data []byte) error {
+// implement marshalJSON for rawMaybeKeyframes
+func (r rawMaybeKeyframes[T]) MarshalJSON() ([]byte, error) {
+	if r.Static {
+		return json.Marshal(r.StaticValue)
+	} else {
+		return json.Marshal(r.Keyframe)
+	}
+}
+
+func (r *rawMaybeKeyframes[T]) UnmarshalJSON(data []byte) error {
 	var staticValue T
 	if err := json.Unmarshal(data, &staticValue); err == nil {
 		r.Static = true
@@ -456,7 +399,7 @@ func (r *rawMaybeKeyframe[T]) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	var keyframe rawKeyframe[T]
+	var keyframe rawKeyframes[T]
 	if err := json.Unmarshal(data, &keyframe); err != nil {
 		return fmt.Errorf("maybeKeyframe cannot be unmarshaled as static value or keyframe: %w", err)
 	}

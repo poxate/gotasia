@@ -86,17 +86,91 @@ func (p *Project) encodeTrackMedias(track *Track) []jobj {
 	for _, element := range track.Elements {
 		start += element.gap
 
-		width := int(element.scale * float64(element.node.width()))
-		height := int(element.scale * float64(element.node.height()))
+		width := int(element.scaleX * float64(element.node.width()))
+		height := int(element.scaleY * float64(element.node.height()))
 
-		var translateX int
+		translateX := rawMaybeKeyframes[int]{Static: true, StaticValue: 0, Keyframe: rawKeyframes[int]{Type: "double"}}
 		if element.xSet {
-			translateX = p.coordX(int(width), element.x)
+			translateX.StaticValue = p.coordX(int(width), element.x)
 		}
 
-		var translateY int
+		translateY := rawMaybeKeyframes[int]{Static: true, StaticValue: 0, Keyframe: rawKeyframes[int]{Type: "double"}}
 		if element.ySet {
-			translateY = p.coordY(int(height), element.y)
+			translateY.StaticValue = p.coordY(int(height), element.y)
+		}
+
+		scaleX := rawMaybeKeyframes[float64]{Static: true, StaticValue: element.scaleX, Keyframe: rawKeyframes[float64]{Type: "double"}}
+		scaleY := rawMaybeKeyframes[float64]{Static: true, StaticValue: element.scaleY, Keyframe: rawKeyframes[float64]{Type: "double"}}
+
+		var animateStart time.Duration = start
+		lastScaleX := scaleX.StaticValue
+		lastScaleY := scaleY.StaticValue
+		for _, animation := range element.Animations {
+			if animation.scaleX != nil {
+				if scaleX.Static {
+					scaleX.Static = false
+					scaleX.Keyframe.DefaultValue = scaleX.StaticValue
+				}
+
+				scaleX.Keyframe.Keyframes = append(scaleX.Keyframe.Keyframes,
+					keyframe[float64]{
+						Time:     p.encodeTime(animateStart + animation.Gap),
+						EndTime:  p.encodeTime(animateStart + animation.Gap + animation.Duration),
+						Duration: p.encodeTime(animation.Duration),
+						Value:    *animation.scaleX,
+					},
+				)
+				lastScaleX = *animation.scaleX
+			}
+
+			if animation.scaleY != nil {
+				if scaleY.Static {
+					scaleY.Static = false
+					scaleY.Keyframe.DefaultValue = scaleY.StaticValue
+				}
+
+				scaleY.Keyframe.Keyframes = append(scaleY.Keyframe.Keyframes,
+					keyframe[float64]{
+						Time:     p.encodeTime(animateStart + animation.Gap),
+						EndTime:  p.encodeTime(animateStart + animation.Gap + animation.Duration),
+						Duration: p.encodeTime(animation.Duration),
+						Value:    *animation.scaleY,
+					},
+				)
+				lastScaleY = *animation.scaleY
+			}
+
+			if animation.x != nil {
+				if translateX.Static {
+					translateX.Static = false
+					translateX.Keyframe.DefaultValue = translateX.StaticValue
+				}
+
+				translateX.Keyframe.Keyframes = append(translateX.Keyframe.Keyframes,
+					keyframe[int]{
+						Time:     p.encodeTime(animateStart + animation.Gap),
+						EndTime:  p.encodeTime(animateStart + animation.Gap + animation.Duration),
+						Duration: p.encodeTime(animation.Duration),
+						Value:    p.coordX(int(lastScaleX*float64(element.node.width())), *animation.x),
+					},
+				)
+			}
+
+			if animation.y != nil {
+				if translateY.Static {
+					translateY.Static = false
+					translateY.Keyframe.DefaultValue = translateY.StaticValue
+				}
+
+				translateY.Keyframe.Keyframes = append(translateY.Keyframe.Keyframes,
+					keyframe[int]{
+						Time:     p.encodeTime(animateStart + animation.Gap),
+						EndTime:  p.encodeTime(animateStart + animation.Gap + animation.Duration),
+						Duration: p.encodeTime(animation.Duration),
+						Value:    p.coordY(int(lastScaleY*float64(element.node.height())), *animation.y),
+					},
+				)
+			}
 		}
 
 		obj := jobj{
@@ -106,8 +180,8 @@ func (p *Project) encodeTrackMedias(track *Track) []jobj {
 			"mediaStart":    0,
 			"mediaDuration": int(element.duration.Seconds() * editRate),
 			"parameters": jobj{
-				"scale0":       element.scale,
-				"scale1":       element.scale,
+				"scale0":       scaleX,
+				"scale1":       scaleY,
 				"translation0": translateX,
 				"translation1": translateY,
 			},
@@ -173,4 +247,8 @@ func (p *Project) coordY(height, posY int) int {
 	pCenter := p.Height / 2
 	eCenter := posY + (height / 2)
 	return pCenter - eCenter
+}
+
+func (p *Project) encodeTime(dur time.Duration) int {
+	return int(dur.Seconds() * editRate)
 }
