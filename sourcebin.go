@@ -14,3 +14,7 @@ type MediaItem struct {
 	Height int
 	Type   MediaType
 }
+
+func (item *MediaItem) Image() *ImageFile {
+	return &ImageFile{Src: item}
+}

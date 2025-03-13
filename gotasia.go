@@ -3,6 +3,7 @@ package gotasia
 import (
 	"encoding/json"
 	"fmt"
+	"image/color"
 	"io"
 	"path/filepath"
 	"time"
@@ -25,12 +26,14 @@ const editRate = 705600000
 
 type Project struct {
 	id                    *idTracker
+	BackgroundColor       color.Color
 	Width                 int
 	Height                int
 	AutoNormalizeLoudness bool
 	FrameRate             FrameRate
 	Tracks                []*Track
 	MediaBin              MediaBin
+	MediaItemId           map[*MediaItem]int
 }
 
 func NewProject(width, height int) *Project {
@@ -42,13 +45,24 @@ func NewProject(width, height int) *Project {
 		FrameRate:             FrameRate60,
 		Tracks:                []*Track{},
 		MediaBin:              MediaBin{},
+		MediaItemId:           map[*MediaItem]int{},
 	}
+}
+
+func (p *Project) width() int {
+	return p.Width
+}
+
+func (p *Project) height() int {
+	return p.Height
 }
 
 func (p *Project) Encode(w io.Writer) error {
 	if len(p.Tracks) == 0 {
 		return fmt.Errorf("cannot encode project without at least 1 track")
 	}
+
+	sourcebin := p.encodeSourcebin()
 
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
@@ -65,7 +79,7 @@ func (p *Project) Encode(w io.Writer) error {
 		"height":                           p.Height,
 		"version":                          "8.0",
 		"editRate":                         editRate,
-		"sourceBin":                        p.encodeSourcebin(),
+		"sourceBin":                        sourcebin,
 		"timeline":                         p.encodeTimeline(),
 		"authoringClientName": jobj{
 			"name":     "Camtasia",
@@ -96,6 +110,15 @@ func (p *Project) encodeTimeline() jobj {
 		})
 	}
 
+	var bgR, bgG, bgB, bgA uint32
+	if p.BackgroundColor != nil {
+		bgR, bgG, bgB, bgA = p.BackgroundColor.RGBA()
+	}
+	bgR /= 257
+	bgG /= 257
+	bgB /= 257
+	bgA /= 257
+
 	return jobj{
 		"id": timelineId,
 		"sceneTrack": jobj{
@@ -106,6 +129,7 @@ func (p *Project) encodeTimeline() jobj {
 			}},
 		},
 		"trackAttributes": trackAttributeObjs,
+		"backgroundColor": []uint32{bgR, bgG, bgB, bgA},
 	}
 }
 
@@ -114,23 +138,48 @@ func (p *Project) encodeTrackMedias(track *Track) []jobj {
 
 	var start time.Duration = 0
 	for _, element := range track.Elements {
-		start += element.Gap
+		start += element.gap
 
-		list = append(list, jobj{
+		width := int(element.scale * float64(element.node.width()))
+		height := int(element.scale * float64(element.node.height()))
+
+		var translateX int
+		if element.xSet {
+			translateX = p.coordX(int(width), element.x)
+		}
+
+		var translateY int
+		if element.ySet {
+			translateY = p.coordY(int(height), element.y)
+		}
+
+		obj := jobj{
 			"id":            p.id.gen(),
-			"_type":         getElementType(element),
 			"start":         int(start.Seconds() * editRate),
-			"duration":      int(element.Duration.Seconds() * editRate),
+			"duration":      int(element.duration.Seconds() * editRate),
 			"mediaStart":    0,
-			"mediaDuration": int(element.Duration.Seconds() * editRate),
-			"def":           p.createDef(element),
+			"mediaDuration": int(element.duration.Seconds() * editRate),
 			"parameters": jobj{
-				"translation0": p.coordX(element.Node.width(), element.X),
-				"translation1": p.coordY(element.Node.height(), element.Y),
+				"scale0":       element.scale,
+				"scale1":       element.scale,
+				"translation0": translateX,
+				"translation1": translateY,
 			},
-		})
+		}
 
-		start += element.Duration + 1
+		switch node := element.node.(type) {
+		case *Callout:
+			obj["_type"] = "Callout"
+			obj["def"] = node.createDef()
+		case *ImageFile:
+			obj["_type"] = "IMFile"
+			obj["src"] = p.MediaItemId[node.Src]
+		default:
+			panic("unknown element type: " + litter.Sdump(element.node))
+		}
+
+		list = append(list, obj)
+		start += element.duration + 1
 	}
 
 	return list
@@ -141,8 +190,10 @@ func (p *Project) encodeSourcebin() []jobj {
 
 	for _, item := range p.MediaBin {
 		if item.Type == ImageMediaItem {
+			id := p.id.gen()
+			p.MediaItemId[item] = id
 			list = append(list, jobj{
-				"id":   p.id.gen(),
+				"id":   id,
 				"src":  item.Src,
 				"rect": []int{0, 0, item.Width, item.Height},
 				"sourceTracks": []jobj{
@@ -164,15 +215,6 @@ func (p *Project) encodeSourcebin() []jobj {
 	}
 
 	return list
-}
-
-func getElementType(e *Element) string {
-	switch e.Node.(type) {
-	case *Callout:
-		return "Callout"
-	default:
-		panic("unknown element node: " + litter.Sdump(e.Node))
-	}
 }
 
 func (p *Project) coordX(width, posX int) int {
