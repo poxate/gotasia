@@ -1,7 +1,10 @@
 package gotasia
 
 import (
+	"fmt"
 	"image/color"
+	"maps"
+	"slices"
 	"strconv"
 )
 
@@ -9,6 +12,7 @@ type CalloutShape int
 type CalloutFillStyle string
 
 const (
+	CalloutShapeText          CalloutShape = iota
 	CalloutShapeSpeechBubble1 CalloutShape = iota
 	CalloutShapeSpeechBubble2
 	CalloutShapeThoughtBubble1
@@ -24,7 +28,9 @@ const (
 )
 
 type Callout struct {
-	Text  string
+	Text  string // ignored if spans is not nil
+	Spans []Span
+
 	Shape CalloutShape
 	// if FillStyle is not specified, will render to solid
 	FillStyle    CalloutFillStyle
@@ -36,8 +42,45 @@ type Callout struct {
 	CornerRadius int // only used for text-rectangle
 }
 
+type Span struct {
+	Text          string
+	FontSize      int
+	Underline     bool
+	Color         color.Color
+	Weight        int
+	Italic        bool
+	FontName      string
+	Kerning       float64
+	Strikethrough bool
+}
+
+func calloutShapeFrom(raw string) CalloutShape {
+	switch raw {
+	case "text":
+		return CalloutShapeText
+	case "speech-bubble":
+		return CalloutShapeSpeechBubble1
+	case "speech-bubble2":
+		return CalloutShapeSpeechBubble2
+	case "thought-bubble":
+		return CalloutShapeThoughtBubble1
+	case "thought-bubble2":
+		return CalloutShapeThoughtBubble2
+	case "text-arrow":
+		return CalloutShapeTextArrow1
+	case "text-arrow2":
+		return CalloutShapeTextArrow2
+	case "text-rectangle":
+		return CalloutShapeTextRectangle
+	default:
+		panic("unknown callout shape: " + raw)
+	}
+}
+
 func (shape CalloutShape) string() string {
 	switch shape {
+	case CalloutShapeText:
+		return "text"
 	case CalloutShapeSpeechBubble1:
 		return "speech-bubble"
 	case CalloutShapeSpeechBubble2:
@@ -60,7 +103,7 @@ func (shape CalloutShape) string() string {
 func (c *Callout) width() int  { return c.Width }
 func (c *Callout) height() int { return c.Height }
 
-func (node *Callout) createDef() jobj {
+func (node *Callout) encodeDef() jobj {
 	fillStyle := node.FillStyle
 	if fillStyle == "" {
 		fillStyle = "solid"
@@ -69,6 +112,42 @@ func (node *Callout) createDef() jobj {
 	var fR, fG, fB, fA uint32
 	if node.FillColor != nil {
 		fR, fG, fB, fA = node.FillColor.RGBA()
+	}
+
+	text := node.Text
+
+	keyframeValues := []jobj{}
+	if len(node.Spans) > 0 {
+		for _, t := range node.Spans {
+			text += t.Text
+		}
+
+		start := 0
+		for _, span := range node.Spans {
+			r, g, b, a := colorTo255(span.Color)
+
+			gen := func(name string, valueType string, value interface{}) jobj {
+				return jobj{
+					"name":       name,
+					"value":      value,
+					"valueType":  valueType,
+					"rangeStart": start,
+					"rangeEnd":   start + len(span.Text),
+				}
+			}
+
+			keyframeValues = append(keyframeValues,
+				gen("fontSize", "double", float64(span.FontSize)),
+				gen("underline", "int", boolToInt(span.Underline)),
+				gen("fgColor", "color", fmt.Sprintf("(%d,%d,%d,%d)", r, g, b, a)),
+				gen("fontWeight", "int", span.Weight),
+				gen("fontItalic", "int", boolToInt(span.Italic)),
+				gen("fontName", "string", span.FontName),
+				gen("kerning", "double", span.Kerning),
+				gen("strikethrough", "int", boolToInt(span.Strikethrough)),
+			)
+			start += len(span.Text)
+		}
 	}
 
 	return jobj{
@@ -102,7 +181,7 @@ func (node *Callout) createDef() jobj {
 		"horizontal-alignment":    "center",
 		"resize-behavior":         "resizeText",
 		"stroke-style":            "solid",
-		"text":                    node.Text,
+		"text":                    text,
 		"vertical-alignment":      "center",
 		"font": jobj{
 			"color-blue":  1.0,
@@ -119,10 +198,72 @@ func (node *Callout) createDef() jobj {
 				{
 					"endTime":  0,
 					"time":     0,
-					"value":    nil,
+					"value":    keyframeValues,
 					"duration": 0,
 				},
 			},
 		},
 	}
+}
+
+func decodeSpans(text string, attributes rawTextAttributes) []Span {
+	spans := flattenRange(text, attributes)
+
+	start := 0
+	for i := range spans {
+		span := &spans[i]
+		for _, detail := range attributes.Keyframes[0].Value {
+			if inRange := detail.RangeStart <= start && detail.RangeEnd >= start+len(span.Text); !inRange {
+				continue
+			}
+			switch detail.Name {
+			case "fontSize":
+				span.FontSize = int(detail.Value.(float64))
+			case "underline":
+				span.Underline = detail.Value.(float64) != 0
+			case "fgColor":
+				colorValue := detail.Value.(string)
+				var r, g, b, a uint8
+				fmt.Sscanf(colorValue, "(%d,%d,%d,%d)", &r, &g, &b, &a)
+				span.Color = color.RGBA{R: r, G: g, B: b, A: a}
+			case "fontWeight":
+				span.Weight = int(detail.Value.(float64))
+			case "fontItalic":
+				span.Italic = detail.Value.(float64) != 0
+			case "fontName":
+				span.FontName = detail.Value.(string)
+			case "kerning":
+				span.Kerning = detail.Value.(float64)
+			case "strikethrough":
+				span.Strikethrough = detail.Value.(float64) != 0
+			}
+		}
+		start += len(span.Text)
+	}
+
+	return spans
+}
+
+func flattenRange(text string, attributes rawTextAttributes) []Span {
+	spanStarts := map[int]struct{}{}
+
+	for _, value := range attributes.Keyframes[0].Value {
+		spanStarts[value.RangeStart] = struct{}{}
+	}
+
+	starts := slices.Sorted(maps.Keys(spanStarts))
+
+	spans := []Span{}
+	for i, start := range starts {
+		end := len(text)
+		if i < len(starts)-1 {
+			end = starts[i+1]
+		}
+
+		spans = append(spans, Span{
+			Text: text[start:end],
+		})
+	}
+
+	return spans
 }

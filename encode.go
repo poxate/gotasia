@@ -3,59 +3,12 @@ package gotasia
 import (
 	"encoding/json"
 	"fmt"
-	"image/color"
 	"io"
 	"path/filepath"
 	"time"
 
 	"github.com/sanity-io/litter"
 )
-
-type jobj = map[string]any
-
-type FrameRate int
-
-const (
-	FrameRate25 FrameRate = 25
-	FrameRate30 FrameRate = 30
-	FrameRate50 FrameRate = 50
-	FrameRate60 FrameRate = 60
-)
-
-const editRate = 705600000
-
-type Project struct {
-	id                    *idTracker
-	BackgroundColor       color.Color
-	Width                 int
-	Height                int
-	AutoNormalizeLoudness bool
-	FrameRate             FrameRate
-	Tracks                []*Track
-	MediaBin              MediaBin
-	MediaItemId           map[*MediaItem]int
-}
-
-func NewProject(width, height int) *Project {
-	return &Project{
-		id:                    &idTracker{},
-		Width:                 width,
-		Height:                height,
-		AutoNormalizeLoudness: true,
-		FrameRate:             FrameRate60,
-		Tracks:                []*Track{},
-		MediaBin:              MediaBin{},
-		MediaItemId:           map[*MediaItem]int{},
-	}
-}
-
-func (p *Project) width() int {
-	return p.Width
-}
-
-func (p *Project) height() int {
-	return p.Height
-}
 
 func (p *Project) Encode(w io.Writer) error {
 	if len(p.Tracks) == 0 {
@@ -110,14 +63,7 @@ func (p *Project) encodeTimeline() jobj {
 		})
 	}
 
-	var bgR, bgG, bgB, bgA uint32
-	if p.BackgroundColor != nil {
-		bgR, bgG, bgB, bgA = p.BackgroundColor.RGBA()
-	}
-	bgR /= 257
-	bgG /= 257
-	bgB /= 257
-	bgA /= 257
+	bgR, bgG, bgB, bgA := colorTo255(p.BackgroundColor)
 
 	return jobj{
 		"id": timelineId,
@@ -170,7 +116,7 @@ func (p *Project) encodeTrackMedias(track *Track) []jobj {
 		switch node := element.node.(type) {
 		case *Callout:
 			obj["_type"] = "Callout"
-			obj["def"] = node.createDef()
+			obj["def"] = node.encodeDef()
 		case *ImageFile:
 			obj["_type"] = "IMFile"
 			obj["src"] = p.MediaItemId[node.Src]

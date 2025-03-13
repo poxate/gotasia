@@ -1,5 +1,10 @@
 package gotasia
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 type rawProject struct {
 	Title                            string  `json:"title"`
 	Description                      string  `json:"description"`
@@ -46,318 +51,8 @@ type rawProject struct {
 			Scenes []struct {
 				Csml struct {
 					Tracks []struct {
-						TrackIndex int `json:"trackIndex"`
-						Medias     []struct {
-							ID   int    `json:"id"`
-							Type string `json:"_type"`
-							Def  struct {
-								Kind                 string  `json:"kind"`
-								Shape                string  `json:"shape"`
-								Style                string  `json:"style"`
-								CornerRadius         float64 `json:"corner-radius"`
-								EnableLigatures      float64 `json:"enable-ligatures"`
-								Height               float64 `json:"height"`
-								LineSpacing          float64 `json:"line-spacing"`
-								TextStrokeAlignment  float64 `json:"text-stroke-alignment"`
-								TextStrokeColorAlpha float64 `json:"text-stroke-color-alpha"`
-								TextStrokeColorBlue  float64 `json:"text-stroke-color-blue"`
-								TextStrokeColorGreen float64 `json:"text-stroke-color-green"`
-								TextStrokeColorRed   float64 `json:"text-stroke-color-red"`
-								TextStrokeWidth      float64 `json:"text-stroke-width"`
-								Width                struct {
-									Type         string  `json:"type"`
-									DefaultValue float64 `json:"defaultValue"`
-									Keyframes    []struct {
-										EndTime  int     `json:"endTime"`
-										Time     int     `json:"time"`
-										Value    float64 `json:"value"`
-										Interp   string  `json:"interp"`
-										Duration int     `json:"duration"`
-									} `json:"keyframes"`
-								} `json:"width"`
-								WordWrap            float64 `json:"word-wrap"`
-								HorizontalAlignment string  `json:"horizontal-alignment"`
-								ResizeBehavior      string  `json:"resize-behavior"`
-								Text                string  `json:"text"`
-								VerticalAlignment   string  `json:"vertical-alignment"`
-								Font                struct {
-									ColorBlue  float64 `json:"color-blue"`
-									ColorGreen float64 `json:"color-green"`
-									ColorRed   float64 `json:"color-red"`
-									Size       float64 `json:"size"`
-									Tracking   float64 `json:"tracking"`
-									Name       string  `json:"name"`
-									Weight     string  `json:"weight"`
-								} `json:"font"`
-								TextAttributes struct {
-									Type      string `json:"type"`
-									Keyframes []struct {
-										EndTime int `json:"endTime"`
-										Time    int `json:"time"`
-										Value   []struct {
-											Name       string `json:"name"`
-											RangeEnd   int    `json:"rangeEnd"`
-											RangeStart int    `json:"rangeStart"`
-											Value      string `json:"value"`
-											ValueType  string `json:"valueType"`
-										} `json:"value"`
-										Duration int `json:"duration"`
-									} `json:"keyframes"`
-								} `json:"textAttributes"`
-							} `json:"def,omitempty"`
-							Attributes struct {
-								Ident          string `json:"ident"`
-								AutoRotateText bool   `json:"autoRotateText"`
-							} `json:"attributes"`
-							Parameters struct {
-								Translation0 struct {
-									Type         string  `json:"type"`
-									DefaultValue float64 `json:"defaultValue"`
-									Keyframes    []struct {
-										EndTime  int     `json:"endTime"`
-										Time     int     `json:"time"`
-										Value    float64 `json:"value"`
-										Interp   string  `json:"interp,omitempty"`
-										Duration int     `json:"duration"`
-									} `json:"keyframes"`
-								} `json:"translation0"`
-								Translation1 struct {
-									Type         string  `json:"type"`
-									DefaultValue float64 `json:"defaultValue"`
-									Keyframes    []struct {
-										EndTime  int     `json:"endTime"`
-										Time     int     `json:"time"`
-										Value    float64 `json:"value"`
-										Interp   string  `json:"interp,omitempty"`
-										Duration int     `json:"duration"`
-									} `json:"keyframes"`
-								} `json:"translation1"`
-								Translation2 struct {
-									Type         string  `json:"type"`
-									DefaultValue float64 `json:"defaultValue"`
-									Keyframes    []struct {
-										EndTime  int     `json:"endTime"`
-										Time     int     `json:"time"`
-										Value    float64 `json:"value"`
-										Interp   string  `json:"interp"`
-										Duration int     `json:"duration"`
-									} `json:"keyframes"`
-								} `json:"translation2"`
-								Rotation1 struct {
-									Type         string  `json:"type"`
-									DefaultValue float64 `json:"defaultValue"`
-									Keyframes    []struct {
-										EndTime  int     `json:"endTime"`
-										Time     int     `json:"time"`
-										Value    float64 `json:"value"`
-										Interp   string  `json:"interp"`
-										Duration int     `json:"duration"`
-									} `json:"keyframes"`
-								} `json:"rotation1"`
-								Shear1 struct {
-									Type         string  `json:"type"`
-									DefaultValue float64 `json:"defaultValue"`
-									Keyframes    []struct {
-										EndTime  int     `json:"endTime"`
-										Time     int     `json:"time"`
-										Value    float64 `json:"value"`
-										Interp   string  `json:"interp"`
-										Duration int     `json:"duration"`
-									} `json:"keyframes"`
-								} `json:"shear1"`
-								Scale0 struct {
-									Type         string  `json:"type"`
-									DefaultValue float64 `json:"defaultValue"`
-									Keyframes    []struct {
-										EndTime  int     `json:"endTime"`
-										Time     int     `json:"time"`
-										Value    float64 `json:"value"`
-										Duration int     `json:"duration"`
-									} `json:"keyframes"`
-								} `json:"scale0"`
-								Scale1 struct {
-									Type         string  `json:"type"`
-									DefaultValue float64 `json:"defaultValue"`
-									Keyframes    []struct {
-										EndTime  int     `json:"endTime"`
-										Time     int     `json:"time"`
-										Value    float64 `json:"value"`
-										Duration int     `json:"duration"`
-									} `json:"keyframes"`
-								} `json:"scale1"`
-								GeometryCrop0 float64 `json:"geometryCrop0"`
-								GeometryCrop1 float64 `json:"geometryCrop1"`
-								GeometryCrop2 float64 `json:"geometryCrop2"`
-								GeometryCrop3 float64 `json:"geometryCrop3"`
-							} `json:"parameters"`
-							Effects []struct {
-								EffectName string `json:"effectName"`
-								Bypassed   bool   `json:"bypassed"`
-								Category   string `json:"category"`
-								Parameters struct {
-									Radius struct {
-										Type         string  `json:"type"`
-										DefaultValue float64 `json:"defaultValue"`
-										Interp       string  `json:"interp"`
-										UIHints      struct {
-											UserInterfaceType int `json:"userInterfaceType"`
-											UnitType          int `json:"unitType"`
-										} `json:"uiHints"`
-										Keyframes []struct {
-											EndTime  int     `json:"endTime"`
-											Time     int     `json:"time"`
-											Value    float64 `json:"value"`
-											Interp   string  `json:"interp,omitempty"`
-											Duration int     `json:"duration"`
-										} `json:"keyframes"`
-									} `json:"radius"`
-									Intensity struct {
-										Type         string  `json:"type"`
-										DefaultValue float64 `json:"defaultValue"`
-										Interp       string  `json:"interp"`
-										UIHints      struct {
-											UserInterfaceType int `json:"userInterfaceType"`
-											UnitType          int `json:"unitType"`
-										} `json:"uiHints"`
-										Keyframes []struct {
-											EndTime  int     `json:"endTime"`
-											Time     int     `json:"time"`
-											Value    float64 `json:"value"`
-											Duration int     `json:"duration"`
-										} `json:"keyframes"`
-									} `json:"intensity"`
-								} `json:"parameters"`
-								Metadata struct {
-									DefaultGlowIntensity struct {
-										Type  string  `json:"type"`
-										Value float64 `json:"value"`
-									} `json:"default-Glow_intensity"`
-									DefaultGlowRadius struct {
-										Type  string  `json:"type"`
-										Value float64 `json:"value"`
-									} `json:"default-Glow_radius"`
-									PresetName string `json:"presetName"`
-								} `json:"metadata"`
-							} `json:"effects"`
-							Start         int `json:"start"`
-							Duration      int `json:"duration"`
-							MediaStart    int `json:"mediaStart"`
-							MediaDuration int `json:"mediaDuration"`
-							Scalar        int `json:"scalar"`
-							Metadata      struct {
-								AudiateLinkedSession string `json:"audiateLinkedSession"`
-								ClipSpeedAttribute   struct {
-									Type  string `json:"type"`
-									Value bool   `json:"value"`
-								} `json:"clipSpeedAttribute"`
-								DefaultHAlign    string `json:"default-HAlign"`
-								DefaultLineSpace struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-LineSpace"`
-								DefaultVAlign  string `json:"default-VAlign"`
-								DefaultAnchor0 struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-anchor0"`
-								DefaultAnchor1 struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-anchor1"`
-								DefaultAnchor2 struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-anchor2"`
-								DefaultHeight struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-height"`
-								DefaultRotation0 struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-rotation0"`
-								DefaultRotation1 struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-rotation1"`
-								DefaultRotation2 struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-rotation2"`
-								DefaultScale0 struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-scale0"`
-								DefaultScale1 struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-scale1"`
-								DefaultScale2 struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-scale2"`
-								DefaultShear0 struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-shear0"`
-								DefaultShear1 struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-shear1"`
-								DefaultShear2 struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-shear2"`
-								DefaultTextAttributes      interface{} `json:"default-text-attributes"`
-								DefaultTextStrokeColorBlue struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-text-stroke-color-blue"`
-								DefaultTextStrokeColorGreen struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-text-stroke-color-green"`
-								DefaultTextStrokeColorRed struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-text-stroke-color-red"`
-								DefaultTextStrokeOpacity struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-text-stroke-opacity"`
-								DefaultTextStrokeWidth struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-text-stroke-width"`
-								DefaultTranslation0 struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-translation0"`
-								DefaultTranslation1 struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-translation1"`
-								DefaultTranslation2 struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-translation2"`
-								DefaultWidth struct {
-									Type  string  `json:"type"`
-									Value float64 `json:"value"`
-								} `json:"default-width"`
-							} `json:"metadata"`
-							AnimationTracks struct {
-								Visual []struct {
-									EndTime  int    `json:"endTime"`
-									Duration int    `json:"duration"`
-									Range    []int  `json:"range"`
-									Interp   string `json:"interp,omitempty"`
-								} `json:"visual"`
-							} `json:"animationTracks"`
-							Src          int `json:"src,omitempty"`
-							TrackNumber  int `json:"trackNumber,omitempty"`
-							TrimStartSum int `json:"trimStartSum,omitempty"`
-						} `json:"medias"`
+						TrackIndex  int        `json:"trackIndex"`
+						Medias      []rawMedia `json:"medias"`
 						Transitions []struct {
 							Name       string `json:"name"`
 							Duration   int    `json:"duration"`
@@ -435,4 +130,353 @@ type rawProject struct {
 		AudioNarrationNotes string `json:"audioNarrationNotes"`
 		CalloutStyle        string `json:"calloutStyle"`
 	} `json:"metadata"`
+}
+
+type rawMedia struct {
+	ID   int    `json:"id"`
+	Type string `json:"_type"`
+	Def  struct {
+		Kind                 string                    `json:"kind"`
+		Shape                string                    `json:"shape"`
+		Style                string                    `json:"style"`
+		CornerRadius         any                       `json:"corner-radius"`
+		EnableLigatures      any                       `json:"enable-ligatures"`
+		Width                rawMaybeKeyframe[float64] `json:"width"`
+		Height               rawMaybeKeyframe[float64] `json:"height"`
+		LineSpacing          any                       `json:"line-spacing"`
+		TextStrokeAlignment  any                       `json:"text-stroke-alignment"`
+		TextStrokeColorAlpha any                       `json:"text-stroke-color-alpha"`
+		TextStrokeColorBlue  any                       `json:"text-stroke-color-blue"`
+		TextStrokeColorGreen any                       `json:"text-stroke-color-green"`
+		TextStrokeColorRed   any                       `json:"text-stroke-color-red"`
+		TextStrokeWidth      any                       `json:"text-stroke-width"`
+		WordWrap             any                       `json:"word-wrap"`
+		HorizontalAlignment  string                    `json:"horizontal-alignment"`
+		ResizeBehavior       string                    `json:"resize-behavior"`
+		Text                 string                    `json:"text"`
+		VerticalAlignment    string                    `json:"vertical-alignment"`
+		Font                 struct {
+			ColorBlue  any `json:"color-blue"`
+			ColorGreen any `json:"color-green"`
+			ColorRed   any `json:"color-red"`
+			Size       any `json:"size"`
+			Tracking   any `json:"tracking"`
+			Name       any `json:"name"`
+			Weight     any `json:"weight"`
+		} `json:"font"`
+		TextAttributes rawTextAttributes `json:"textAttributes"`
+	} `json:"def,omitempty"`
+	Attributes struct {
+		Ident          string `json:"ident"`
+		AutoRotateText bool   `json:"autoRotateText"`
+	} `json:"attributes"`
+	Parameters struct {
+		Translation0 struct {
+			Type         string  `json:"type"`
+			DefaultValue float64 `json:"defaultValue"`
+			Keyframes    []struct {
+				EndTime  int     `json:"endTime"`
+				Time     int     `json:"time"`
+				Value    float64 `json:"value"`
+				Interp   string  `json:"interp,omitempty"`
+				Duration int     `json:"duration"`
+			} `json:"keyframes"`
+		} `json:"translation0"`
+		Translation1 struct {
+			Type         string  `json:"type"`
+			DefaultValue float64 `json:"defaultValue"`
+			Keyframes    []struct {
+				EndTime  int     `json:"endTime"`
+				Time     int     `json:"time"`
+				Value    float64 `json:"value"`
+				Interp   string  `json:"interp,omitempty"`
+				Duration int     `json:"duration"`
+			} `json:"keyframes"`
+		} `json:"translation1"`
+		Translation2 struct {
+			Type         string  `json:"type"`
+			DefaultValue float64 `json:"defaultValue"`
+			Keyframes    []struct {
+				EndTime  int     `json:"endTime"`
+				Time     int     `json:"time"`
+				Value    float64 `json:"value"`
+				Interp   string  `json:"interp"`
+				Duration int     `json:"duration"`
+			} `json:"keyframes"`
+		} `json:"translation2"`
+		Rotation1 struct {
+			Type         string  `json:"type"`
+			DefaultValue float64 `json:"defaultValue"`
+			Keyframes    []struct {
+				EndTime  int     `json:"endTime"`
+				Time     int     `json:"time"`
+				Value    float64 `json:"value"`
+				Interp   string  `json:"interp"`
+				Duration int     `json:"duration"`
+			} `json:"keyframes"`
+		} `json:"rotation1"`
+		Shear1 struct {
+			Type         string  `json:"type"`
+			DefaultValue float64 `json:"defaultValue"`
+			Keyframes    []struct {
+				EndTime  int     `json:"endTime"`
+				Time     int     `json:"time"`
+				Value    float64 `json:"value"`
+				Interp   string  `json:"interp"`
+				Duration int     `json:"duration"`
+			} `json:"keyframes"`
+		} `json:"shear1"`
+		Scale0 struct {
+			Type         string  `json:"type"`
+			DefaultValue float64 `json:"defaultValue"`
+			Keyframes    []struct {
+				EndTime  int     `json:"endTime"`
+				Time     int     `json:"time"`
+				Value    float64 `json:"value"`
+				Duration int     `json:"duration"`
+			} `json:"keyframes"`
+		} `json:"scale0"`
+		Scale1 struct {
+			Type         string  `json:"type"`
+			DefaultValue float64 `json:"defaultValue"`
+			Keyframes    []struct {
+				EndTime  int     `json:"endTime"`
+				Time     int     `json:"time"`
+				Value    float64 `json:"value"`
+				Duration int     `json:"duration"`
+			} `json:"keyframes"`
+		} `json:"scale1"`
+		GeometryCrop0 any `json:"geometryCrop0"`
+		GeometryCrop1 any `json:"geometryCrop1"`
+		GeometryCrop2 any `json:"geometryCrop2"`
+		GeometryCrop3 any `json:"geometryCrop3"`
+	} `json:"parameters"`
+	Effects []struct {
+		EffectName string `json:"effectName"`
+		Bypassed   bool   `json:"bypassed"`
+		Category   string `json:"category"`
+		Parameters struct {
+			Radius struct {
+				Type         string  `json:"type"`
+				DefaultValue float64 `json:"defaultValue"`
+				Interp       string  `json:"interp"`
+				UIHints      struct {
+					UserInterfaceType int `json:"userInterfaceType"`
+					UnitType          int `json:"unitType"`
+				} `json:"uiHints"`
+				Keyframes []struct {
+					EndTime  int     `json:"endTime"`
+					Time     int     `json:"time"`
+					Value    float64 `json:"value"`
+					Interp   string  `json:"interp,omitempty"`
+					Duration int     `json:"duration"`
+				} `json:"keyframes"`
+			} `json:"radius"`
+			Intensity struct {
+				Type         string  `json:"type"`
+				DefaultValue float64 `json:"defaultValue"`
+				Interp       string  `json:"interp"`
+				UIHints      struct {
+					UserInterfaceType int `json:"userInterfaceType"`
+					UnitType          int `json:"unitType"`
+				} `json:"uiHints"`
+				Keyframes []struct {
+					EndTime  int     `json:"endTime"`
+					Time     int     `json:"time"`
+					Value    float64 `json:"value"`
+					Duration int     `json:"duration"`
+				} `json:"keyframes"`
+			} `json:"intensity"`
+		} `json:"parameters"`
+		Metadata struct {
+			DefaultGlowIntensity struct {
+				Type  string  `json:"type"`
+				Value float64 `json:"value"`
+			} `json:"default-Glow_intensity"`
+			DefaultGlowRadius struct {
+				Type  string  `json:"type"`
+				Value float64 `json:"value"`
+			} `json:"default-Glow_radius"`
+			PresetName string `json:"presetName"`
+		} `json:"metadata"`
+	} `json:"effects"`
+	Start         int `json:"start"`
+	Duration      int `json:"duration"`
+	MediaStart    int `json:"mediaStart"`
+	MediaDuration int `json:"mediaDuration"`
+	Scalar        int `json:"scalar"`
+	Metadata      struct {
+		AudiateLinkedSession string `json:"audiateLinkedSession"`
+		ClipSpeedAttribute   struct {
+			Type  string `json:"type"`
+			Value bool   `json:"value"`
+		} `json:"clipSpeedAttribute"`
+		DefaultHAlign    string `json:"default-HAlign"`
+		DefaultLineSpace struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-LineSpace"`
+		DefaultVAlign  string `json:"default-VAlign"`
+		DefaultAnchor0 struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-anchor0"`
+		DefaultAnchor1 struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-anchor1"`
+		DefaultAnchor2 struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-anchor2"`
+		DefaultHeight struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-height"`
+		DefaultRotation0 struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-rotation0"`
+		DefaultRotation1 struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-rotation1"`
+		DefaultRotation2 struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-rotation2"`
+		DefaultScale0 struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-scale0"`
+		DefaultScale1 struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-scale1"`
+		DefaultScale2 struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-scale2"`
+		DefaultShear0 struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-shear0"`
+		DefaultShear1 struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-shear1"`
+		DefaultShear2 struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-shear2"`
+		DefaultTextAttributes      interface{} `json:"default-text-attributes"`
+		DefaultTextStrokeColorBlue struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-text-stroke-color-blue"`
+		DefaultTextStrokeColorGreen struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-text-stroke-color-green"`
+		DefaultTextStrokeColorRed struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-text-stroke-color-red"`
+		DefaultTextStrokeOpacity struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-text-stroke-opacity"`
+		DefaultTextStrokeWidth struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-text-stroke-width"`
+		DefaultTranslation0 struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-translation0"`
+		DefaultTranslation1 struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-translation1"`
+		DefaultTranslation2 struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-translation2"`
+		DefaultWidth struct {
+			Type  string  `json:"type"`
+			Value float64 `json:"value"`
+		} `json:"default-width"`
+	} `json:"metadata"`
+	AnimationTracks struct {
+		Visual []struct {
+			EndTime  int    `json:"endTime"`
+			Duration int    `json:"duration"`
+			Range    []int  `json:"range"`
+			Interp   string `json:"interp,omitempty"`
+		} `json:"visual"`
+	} `json:"animationTracks"`
+	Src          int `json:"src,omitempty"`
+	TrackNumber  int `json:"trackNumber,omitempty"`
+	TrimStartSum int `json:"trimStartSum,omitempty"`
+}
+
+type rawMaybeKeyframe[T any] struct {
+	// may eitheer be a static value of type T, or a keyframe of type rawKeyframe[T]
+	Static      bool
+	StaticValue T
+	Keyframe    rawKeyframe[T]
+}
+
+type rawKeyframe[T any] struct {
+	Type         string `json:"type"`
+	DefaultValue T      `json:"defaultValue"`
+	Keyframes    []struct {
+		EndTime  int    `json:"endTime"`
+		Time     int    `json:"time"`
+		Value    T      `json:"value"`
+		Interp   string `json:"interp,omitempty"`
+		Duration int    `json:"duration"`
+	} `json:"keyframes"`
+}
+
+// create a custom unmarshal for rawMaybeKeyframe that checks if the value is T, and if so, marshal it as a static value, else, marhsal in to rawkeyframe
+func (r *rawMaybeKeyframe[T]) getFirstValue() T {
+	if r.Static {
+		return r.StaticValue
+	} else {
+		return r.Keyframe.DefaultValue
+	}
+}
+
+func (r *rawMaybeKeyframe[T]) UnmarshalJSON(data []byte) error {
+	var staticValue T
+	if err := json.Unmarshal(data, &staticValue); err == nil {
+		r.Static = true
+		r.StaticValue = staticValue
+		return nil
+	}
+
+	var keyframe rawKeyframe[T]
+	if err := json.Unmarshal(data, &keyframe); err != nil {
+		return fmt.Errorf("maybeKeyframe cannot be unmarshaled as static value or keyframe: %w", err)
+	}
+	r.Static = false
+	r.Keyframe = keyframe
+	return nil
+}
+
+type rawTextAttributes struct {
+	Type      string `json:"type"`
+	Keyframes []struct {
+		EndTime int `json:"endTime"`
+		Time    int `json:"time"`
+		Value   []struct {
+			Name       string `json:"name"`
+			RangeEnd   int    `json:"rangeEnd"`
+			RangeStart int    `json:"rangeStart"`
+			Value      any    `json:"value"`
+			ValueType  string `json:"valueType"`
+		} `json:"value"`
+		Duration int `json:"duration"`
+	} `json:"keyframes"`
 }
