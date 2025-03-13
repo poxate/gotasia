@@ -28,8 +28,13 @@ const (
 )
 
 type Callout struct {
-	Text  string // ignored if spans is not nil
-	Spans []Span
+	Text             string // ignored if spans is not nil
+	TextFontColor    color.Color
+	TextFontSize     float64
+	TextFontTracking float64
+	TextFontName     string
+	TextFontWeight   string
+	Spans            []Span
 
 	Shape CalloutShape
 	// if FillStyle is not specified, will render to solid
@@ -109,10 +114,8 @@ func (node *Callout) encodeDef() jobj {
 		fillStyle = "solid"
 	}
 
-	var fR, fG, fB, fA uint32
-	if node.FillColor != nil {
-		fR, fG, fB, fA = node.FillColor.RGBA()
-	}
+	fillR, fillG, fillB, fillA := colorTo1Scale(node.FillColor)
+	fontR, fontG, fontB, _ := colorTo1Scale(node.TextFontColor)
 
 	text := node.Text
 
@@ -159,10 +162,10 @@ func (node *Callout) encodeDef() jobj {
 		"corner-radius":           node.CornerRadius,
 		"enable-ligatures":        1.0,
 		"fill-style":              fillStyle,
-		"fill-color-red":          float64(fR) / 65535.0,
-		"fill-color-green":        float64(fG) / 65535.0,
-		"fill-color-blue":         float64(fB) / 65535.0,
-		"fill-color-opacity":      float64(fA) / 65535.0,
+		"fill-color-red":          fillR,
+		"fill-color-green":        fillG,
+		"fill-color-blue":         fillB,
+		"fill-color-opacity":      fillA,
 		"line-spacing":            0.0,
 		"stroke-color-blue":       1.0,
 		"stroke-color-green":      1.0,
@@ -184,13 +187,13 @@ func (node *Callout) encodeDef() jobj {
 		"text":                    text,
 		"vertical-alignment":      "center",
 		"font": jobj{
-			"color-blue":  1.0,
-			"color-green": 1.0,
-			"color-red":   1.0,
-			"size":        64.0,
-			"tracking":    0.0,
-			"name":        "Montserrat",
-			"weight":      "Regular",
+			"color-blue":  fontB,
+			"color-green": fontG,
+			"color-red":   fontR,
+			"size":        node.TextFontSize,
+			"tracking":    node.TextFontTracking,
+			"name":        node.TextFontName,
+			"weight":      node.TextFontWeight,
 		},
 		"textAttributes": jobj{
 			"type": "textAttributeList",

@@ -21,3 +21,16 @@ func boolToInt(b bool) int {
 	}
 	return 0
 }
+
+func colorTo1Scale(c color.Color) (r, g, b, a float64) {
+	if c == nil {
+		return 0, 0, 0, 1
+	}
+
+	ir, ig, ib, ia := c.RGBA()
+	fR := float64(ir) / 65535.0
+	fG := float64(ig) / 65535.0
+	fB := float64(ib) / 65535.0
+	fA := float64(ia) / 65535.0
+	return fR, fG, fB, fA
+}

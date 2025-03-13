@@ -156,13 +156,13 @@ type rawMedia struct {
 		Text                 string                     `json:"text"`
 		VerticalAlignment    string                     `json:"vertical-alignment"`
 		Font                 struct {
-			ColorBlue  any `json:"color-blue"`
-			ColorGreen any `json:"color-green"`
-			ColorRed   any `json:"color-red"`
-			Size       any `json:"size"`
-			Tracking   any `json:"tracking"`
-			Name       any `json:"name"`
-			Weight     any `json:"weight"`
+			ColorBlue  float64 `json:"color-blue"`
+			ColorGreen float64 `json:"color-green"`
+			ColorRed   float64 `json:"color-red"`
+			Size       float64 `json:"size"`
+			Tracking   float64 `json:"tracking"`
+			Name       string  `json:"name"`
+			Weight     string  `json:"weight"`
 		} `json:"font"`
 		TextAttributes rawTextAttributes `json:"textAttributes"`
 	} `json:"def,omitempty"`
@@ -171,47 +171,17 @@ type rawMedia struct {
 		AutoRotateText bool   `json:"autoRotateText"`
 	} `json:"attributes"`
 	Parameters struct {
-		Translation0 struct {
-			Type         string  `json:"type"`
-			DefaultValue float64 `json:"defaultValue"`
-			Keyframes    []struct {
-				EndTime  int     `json:"endTime"`
-				Time     int     `json:"time"`
-				Value    float64 `json:"value"`
-				Interp   string  `json:"interp,omitempty"`
-				Duration int     `json:"duration"`
-			} `json:"keyframes"`
-		} `json:"translation0"`
-		Translation1 struct {
-			Type         string  `json:"type"`
-			DefaultValue float64 `json:"defaultValue"`
-			Keyframes    []struct {
-				EndTime  int     `json:"endTime"`
-				Time     int     `json:"time"`
-				Value    float64 `json:"value"`
-				Interp   string  `json:"interp,omitempty"`
-				Duration int     `json:"duration"`
-			} `json:"keyframes"`
-		} `json:"translation1"`
-		Translation2 rawMaybeKeyframes[float64] `json:"translation2"`
-		Rotation1    struct {
-			Type         string  `json:"type"`
-			DefaultValue float64 `json:"defaultValue"`
-			Keyframes    []struct {
-				EndTime  int     `json:"endTime"`
-				Time     int     `json:"time"`
-				Value    float64 `json:"value"`
-				Interp   string  `json:"interp"`
-				Duration int     `json:"duration"`
-			} `json:"keyframes"`
-		} `json:"rotation1"`
+		Translation0  rawMaybeKeyframes[float64] `json:"translation0"`
+		Translation1  rawMaybeKeyframes[float64] `json:"translation1"`
+		Translation2  rawMaybeKeyframes[float64] `json:"translation2"`
+		Rotation1     rawMaybeKeyframes[float64] `json:"rotation1"`
 		Shear1        rawMaybeKeyframes[float64] `json:"shear1"`
 		Scale0        rawMaybeKeyframes[float64] `json:"scale0"`
 		Scale1        rawMaybeKeyframes[float64] `json:"scale1"`
-		GeometryCrop0 any                        `json:"geometryCrop0"`
-		GeometryCrop1 any                        `json:"geometryCrop1"`
-		GeometryCrop2 any                        `json:"geometryCrop2"`
-		GeometryCrop3 any                        `json:"geometryCrop3"`
+		GeometryCrop0 rawMaybeKeyframes[float64] `json:"geometryCrop0"`
+		GeometryCrop1 rawMaybeKeyframes[float64] `json:"geometryCrop1"`
+		GeometryCrop2 rawMaybeKeyframes[float64] `json:"geometryCrop2"`
+		GeometryCrop3 rawMaybeKeyframes[float64] `json:"geometryCrop3"`
 	} `json:"parameters"`
 	Effects []struct {
 		EffectName string `json:"effectName"`
