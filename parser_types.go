@@ -51,8 +51,8 @@ type rawProjectD struct {
 			Scenes []struct {
 				Csml struct {
 					Tracks []struct {
-						TrackIndex  int        `json:"trackIndex"`
-						Medias      []rawMedia `json:"medias"`
+						TrackIndex  int            `json:"trackIndex"`
+						Medias      []rawMedia_old `json:"medias"`
 						Transitions []struct {
 							Name       string `json:"name"`
 							Duration   int    `json:"duration"`
@@ -132,7 +132,7 @@ type rawProjectD struct {
 	} `json:"metadata"`
 }
 
-type rawMedia struct {
+type rawMedia_old struct {
 	ID   int    `json:"id"`
 	Type string `json:"_type"`
 	Def  struct {

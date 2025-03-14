@@ -20,6 +20,8 @@ type Element struct {
 }
 
 type Node interface {
+	node()
+	camType() string
 	Dimensions
 }
 

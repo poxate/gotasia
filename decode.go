@@ -3,7 +3,6 @@ package gotasia
 import (
 	"encoding/json"
 	"fmt"
-	"image/color"
 	"io"
 	"time"
 )
@@ -19,45 +18,22 @@ func NewDecoder(src io.Reader) *Decoder {
 
 func (dec *Decoder) Decode() (*Project, error) {
 	p := NewProject(0, 0)
-	rawP := rawProjectD{}
-	if err := json.NewDecoder(dec.src).Decode(&rawP); err != nil {
-		return nil, fmt.Errorf("failed to decode project: %w", err)
+	rawProject := rawProject{}
+	if err := json.NewDecoder(dec.src).Decode(&rawProject); err != nil {
+		return nil, fmt.Errorf("failed to decode json: %w", err)
+	} else if rawProject.Version != "8.0" {
+		return nil, fmt.Errorf("unsupported version: %s", rawProject.Version)
 	}
 
-	dec.editRate = rawP.EditRate
-	p._width = int(rawP.Width)
-	p._height = int(rawP.Height)
-	p._autoNormalizeLoudness = rawP.ShouldApplyLoudnessNormalization
-	p._frameRate = FrameRate(rawP.VideoFormatFrameRate)
-	p._backgroundColor = color.NRGBA{
-		R: uint8(rawP.Timeline.BackgroundColor[0]),
-		G: uint8(rawP.Timeline.BackgroundColor[1]),
-		B: uint8(rawP.Timeline.BackgroundColor[2]),
-		A: uint8(rawP.Timeline.BackgroundColor[3]),
-	}
+	p.FrameRate(FrameRate(rawProject.VideoFormatFrameRate))
+	p._width = int(rawProject.Width)
+	p._height = int(rawProject.Height)
+	p.editRate = rawProject.EditRate
 
-	if len(rawP.Timeline.TrackAttributes) != len(rawP.Timeline.SceneTrack.Scenes[0].Csml.Tracks) {
-		return nil, fmt.Errorf("this project's format is invalid, inequal number of tracks (%d) to track attributes (%d)", len(rawP.Timeline.SceneTrack.Scenes[0].Csml.Tracks), len(rawP.Timeline.TrackAttributes))
-	}
-
-	for i, rawTrack := range rawP.Timeline.SceneTrack.Scenes[0].Csml.Tracks {
-		attributes := rawP.Timeline.TrackAttributes[i]
-		track := NewTrack(attributes.Ident)
-
-		var now time.Duration
-		for _, rawMedia := range rawTrack.Medias {
-
-			track.Elements = append(track.Elements, &Element{
-				gap:        dec.rawToDuration(rawMedia.Start) - now,
-				duration:   dec.rawToDuration(rawMedia.Duration),
-				scaleX:     rawMedia.Parameters.Scale0.getFirstValue(),
-				scaleY:     rawMedia.Parameters.Scale1.getFirstValue(),
-				node:       dec.decodeNode(&rawMedia),
-				Animations: dec.decodeAnimations(&rawMedia),
-			})
-		}
-
-		p.Tracks = append(p.Tracks, track)
+	for trackIndex, rawTrack := range rawProject.Timeline.SceneTrack.Scenes[0].Csml.Tracks {
+		attributes := rawProject.Timeline.TrackAttributes[trackIndex]
+		p.Tracks = append(p.Tracks, NewTrack(attributes.Ident))
+		_ = rawTrack
 	}
 
 	return p, nil
@@ -68,7 +44,7 @@ func (dec *Decoder) rawToDuration(rawtime int) time.Duration {
 	return time.Duration(sec * float64(editRate))
 }
 
-func (dec *Decoder) decodeNode(media *rawMedia) Node {
+func (dec *Decoder) decodeNode(media *rawMedia_old) Node {
 	switch media.Type {
 	case "Callout":
 		if len(media.Def.TextAttributes.Keyframes) != 1 {
@@ -78,32 +54,32 @@ func (dec *Decoder) decodeNode(media *rawMedia) Node {
 		spans := decodeSpans(media.Def.Text, media.Def.TextAttributes)
 
 		return &Callout{
-			Text:             media.Def.Text,
-			Spans:            spans,
-			Shape:            calloutShapeFrom(media.Def.Shape),
-			Width:            int(media.Def.Width.getFirstValue()),
-			Height:           int(media.Def.Height.getFirstValue()),
-			TextFontSize:     media.Def.Font.Size,
-			TextFontName:     media.Def.Font.Name,
-			TextFontWeight:   media.Def.Font.Weight,
-			TextFontTracking: media.Def.Font.Tracking,
-			TextFontColor: color.NRGBA{
-				R: uint8(media.Def.Font.ColorRed * 255),
-				G: uint8(media.Def.Font.ColorGreen * 255),
-				B: uint8(media.Def.Font.ColorBlue * 255),
-				A: 255,
-			},
+			_text:  media.Def.Text,
+			Spans:  spans,
+			Shape:  calloutShapeFrom(media.Def.Shape),
+			Width:  int(media.Def.Width.getFirstValue()),
+			Height: int(media.Def.Height.getFirstValue()),
+			// TextFontSize:     media.Def.Font.Size,
+			// TextFontName:     media.Def.Font.Name,
+			// TextFontWeight:   media.Def.Font.Weight,
+			// TextFontTracking: media.Def.Font.Tracking,
+			// TextFontColor: color.NRGBA{
+			// 	R: uint8(media.Def.Font.ColorRed * 255),
+			// 	G: uint8(media.Def.Font.ColorGreen * 255),
+			// 	B: uint8(media.Def.Font.ColorBlue * 255),
+			// 	A: 255,
+			// },
 		}
 	default:
 		return &Callout{
-			Text:   "",
+			_text:  "",
 			Width:  200,
 			Height: 200,
 		}
 	}
 }
 
-func (dec *Decoder) decodeAnimations(rawMedia *rawMedia) []*Animation {
+func (dec *Decoder) decodeAnimations(rawMedia *rawMedia_old) []*Animation {
 	animations := []*Animation{}
 	animationStarts := map[int]*Animation{}
 	loadAnimations(dec, &animations, animationStarts, rawMedia.Parameters.Translation0)

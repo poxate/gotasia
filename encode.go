@@ -90,7 +90,7 @@ func (p *Project) encodeRawTracks() []rawTrack {
 		_ = track
 		rawTracks = append(rawTracks, rawTrack{
 			TrackIndex: i,
-			Medias:     []interface{}{},
+			Medias:     p.encodeRawTrackMedias(track),
 		})
 	}
 
@@ -128,6 +128,33 @@ func (p *Project) encodeRawTracks() []rawTrack {
 	// }
 }
 
+func (p *Project) encodeRawTrackMedias(track *Track) []rawMedia {
+	medias := []rawMedia{}
+
+	var start time.Duration
+
+	for _, element := range track.Elements {
+		rMedia := rawMedia{
+			ID:            p.id.gen(),
+			Type:          element.node.camType(),
+			Start:         p.encodeTime(start + element.gap),
+			Duration:      p.encodeTime(element.duration),
+			MediaDuration: p.encodeTime(element.duration),
+			Scalar:        1,
+		}
+
+		switch node := element.node.(type) {
+		case *Callout:
+			node.encodeIntoMedia(&rMedia)
+		}
+
+		medias = append(medias, rMedia)
+		start += element.gap + element.duration + 1
+	}
+
+	return medias
+}
+
 func (p *Project) encodeTrackAttributes() []rawTrackAttribute {
 	attributes := []rawTrackAttribute{}
 
@@ -149,7 +176,7 @@ func (p *Project) encodeTrackAttributes() []rawTrackAttribute {
 	return attributes
 }
 
-func (p *Project) encodeTrackMedias(track *Track) []jobj {
+func (p *Project) encodeTrackMedias_old(track *Track) []jobj {
 	list := []jobj{}
 
 	var start time.Duration = 0
@@ -320,5 +347,5 @@ func (p *Project) coordY(height, posY int) int {
 }
 
 func (p *Project) encodeTime(dur time.Duration) int {
-	return int(dur.Seconds() * editRate)
+	return int(dur.Seconds() * float64(p.editRate))
 }

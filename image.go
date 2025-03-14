@@ -11,3 +11,6 @@ func (i *ImageFile) width() int {
 func (i *ImageFile) height() int {
 	return i.Src.Height
 }
+
+func (i *ImageFile) node()           {}
+func (i *ImageFile) camType() string { return "IMFile" }

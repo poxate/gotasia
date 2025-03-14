@@ -88,8 +88,24 @@ type rawCsml struct {
 }
 
 type rawTrack struct {
-	TrackIndex int           `json:"trackIndex"`
-	Medias     []interface{} `json:"medias"`
+	TrackIndex int        `json:"trackIndex"`
+	Medias     []rawMedia `json:"medias"`
+}
+
+type rawMedia struct {
+	ID   int     `json:"id"`
+	Type string  `json:"_type"`
+	Def  *rawDef `json:"def"`
+	// Attributes      Attributes      `json:"attributes"`
+	// Parameters      Parameters      `json:"parameters"`
+	Effects       []interface{} `json:"effects"`
+	Start         int           `json:"start"`
+	Duration      int           `json:"duration"`
+	MediaStart    int           `json:"mediaStart"`
+	MediaDuration int           `json:"mediaDuration"`
+	Scalar        int           `json:"scalar"`
+	// Metadata        MediaMetadata   `json:"metadata"`
+	// AnimationTracks AnimationTracks `json:"animationTracks"`
 }
 
 type rawTrackAttribute struct {
@@ -105,4 +121,38 @@ type rawTrackAttribute struct {
 type rawTrackAttributeMetadata struct {
 	IsLocked       string `json:"IsLocked"`
 	WinTrackHeight string `json:"WinTrackHeight"`
+}
+
+type rawDef struct {
+	Kind                 string   `json:"kind"`
+	Shape                string   `json:"shape"`
+	Style                string   `json:"style"`
+	CornerRadius         KeepZero `json:"corner-radius"`
+	EnableLigatures      KeepZero `json:"enable-ligatures"`
+	Height               KeepZero `json:"height"`
+	LineSpacing          KeepZero `json:"line-spacing"`
+	TextStrokeAlignment  KeepZero `json:"text-stroke-alignment"`
+	TextStrokeColorAlpha KeepZero `json:"text-stroke-color-alpha"`
+	TextStrokeColorBlue  KeepZero `json:"text-stroke-color-blue"`
+	TextStrokeColorGreen KeepZero `json:"text-stroke-color-green"`
+	TextStrokeColorRed   KeepZero `json:"text-stroke-color-red"`
+	TextStrokeWidth      KeepZero `json:"text-stroke-width"`
+	Width                KeepZero `json:"width"`
+	WordWrap             KeepZero `json:"word-wrap"`
+	HorizontalAlignment  string   `json:"horizontal-alignment"`
+	ResizeBehavior       string   `json:"resize-behavior"`
+	Text                 string   `json:"text"`
+	VerticalAlignment    string   `json:"vertical-alignment"`
+	Font                 rawFont  `json:"font"`
+	// TextAttributes       TextAttributes `json:"textAttributes"`
+}
+
+type rawFont struct {
+	ColorBlue  KeepZero `json:"color-blue"`
+	ColorGreen KeepZero `json:"color-green"`
+	ColorRed   KeepZero `json:"color-red"`
+	Size       KeepZero `json:"size"`
+	Tracking   KeepZero `json:"tracking"`
+	Name       string   `json:"name"`
+	Weight     string   `json:"weight"`
 }
