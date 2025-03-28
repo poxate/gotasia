@@ -377,19 +377,3 @@ func (r *rawMaybeKeyframes[T]) UnmarshalJSON(data []byte) error {
 	r.Keyframe = keyframe
 	return nil
 }
-
-type rawTextAttributes struct {
-	Type      string `json:"type"`
-	Keyframes []struct {
-		EndTime int `json:"endTime"`
-		Time    int `json:"time"`
-		Value   []struct {
-			Name       string `json:"name"`
-			RangeEnd   int    `json:"rangeEnd"`
-			RangeStart int    `json:"rangeStart"`
-			Value      any    `json:"value"`
-			ValueType  string `json:"valueType"`
-		} `json:"value"`
-		Duration int `json:"duration"`
-	} `json:"keyframes"`
-}

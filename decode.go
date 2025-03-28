@@ -32,11 +32,25 @@ func (dec *Decoder) Decode() (*Project, error) {
 
 	for trackIndex, rawTrack := range rawProject.Timeline.SceneTrack.Scenes[0].Csml.Tracks {
 		attributes := rawProject.Timeline.TrackAttributes[trackIndex]
-		p.Tracks = append(p.Tracks, NewTrack(attributes.Ident))
-		_ = rawTrack
+		track := p.NewTrack(attributes.Ident)
+
+		var start time.Duration
+		for _, media := range rawTrack.Medias {
+			track.Elements = append(track.Elements, &Element{
+				gap:          p.decodeTime(media.Start) - start,
+				duration:     p.decodeTime(media.Duration),
+				Animations:   []*Animation{},
+				node:         dec.decodeNode(media),
+				_rawMetadata: media.Metadata,
+			})
+		}
 	}
 
 	return p, nil
+}
+
+func (p *Project) decodeTime(rawtime int) time.Duration {
+	return time.Duration(float64(rawtime) / float64(p.editRate) * float64(time.Second))
 }
 
 func (dec *Decoder) rawToDuration(rawtime int) time.Duration {
@@ -44,38 +58,49 @@ func (dec *Decoder) rawToDuration(rawtime int) time.Duration {
 	return time.Duration(sec * float64(editRate))
 }
 
-func (dec *Decoder) decodeNode(media *rawMedia_old) Node {
+func (dec *Decoder) decodeNode(media rawMedia) Node {
 	switch media.Type {
 	case "Callout":
-		if len(media.Def.TextAttributes.Keyframes) != 1 {
-			panic("expected media's text attribute to have 1 keyframe")
+		c := NewCallout().SetText(media.Def.Text)
+		c.Shape = CalloutShape(media.Def.Shape)
+		c.Width = float64(media.Def.Width)
+		c.Height = float64(media.Def.Height)
+
+		c.Font = Font{
+			Color: rawColor{
+				r: float64(media.Def.Font.ColorRed),
+				g: float64(media.Def.Font.ColorBlue),
+				b: float64(media.Def.Font.ColorGreen),
+			},
+			Size:     float64(media.Def.Font.Size),
+			Tracking: float64(media.Def.Font.Tracking),
+			Name:     media.Def.Font.Name,
+			Weight:   FontWeight(media.Def.Font.Weight),
 		}
 
-		spans := decodeSpans(media.Def.Text, media.Def.TextAttributes)
-
-		return &Callout{
-			_text:  media.Def.Text,
-			Spans:  spans,
-			Shape:  calloutShapeFrom(media.Def.Shape),
-			Width:  int(media.Def.Width.getFirstValue()),
-			Height: int(media.Def.Height.getFirstValue()),
-			// TextFontSize:     media.Def.Font.Size,
-			// TextFontName:     media.Def.Font.Name,
-			// TextFontWeight:   media.Def.Font.Weight,
-			// TextFontTracking: media.Def.Font.Tracking,
-			// TextFontColor: color.NRGBA{
-			// 	R: uint8(media.Def.Font.ColorRed * 255),
-			// 	G: uint8(media.Def.Font.ColorGreen * 255),
-			// 	B: uint8(media.Def.Font.ColorBlue * 255),
-			// 	A: 255,
-			// },
+		if c.Shape != CalloutShapeText {
+			c.FillColor = rawColor{
+				r: float64(*media.Def.FillColorRed),
+				g: float64(*media.Def.FillColorGreen),
+				b: float64(*media.Def.FillColorBlue),
+			}
+			c.StrokeColor = rawColor{
+				r: float64(*media.Def.StrokeColorRed),
+				g: float64(*media.Def.StrokeColorGreen),
+				b: float64(*media.Def.StrokeColorBlue),
+			}
+			c.FillStyle = CalloutFillStyle(*media.Def.FillStyle)
+			c.FillOpacity = float64(*media.Def.FillColorOpacity)
+			c.StrokeOpacity = float64(*media.Def.StrokeColorOpacity)
+			c.StrokeWidth = float64(*media.Def.StrokeWidth)
+			c.StrokeStyle = CalloutStrokeStyle(*media.Def.StrokeStyle)
+			c.TailX = float64(*media.Def.TailX)
+			c.TailY = float64(*media.Def.TailY)
 		}
+
+		return c
 	default:
-		return &Callout{
-			_text:  "",
-			Width:  200,
-			Height: 200,
-		}
+		return NewCallout().SetText("[unhandled media type]: " + media.Type)
 	}
 }
 

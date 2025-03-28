@@ -5,11 +5,12 @@ import (
 )
 
 type Element struct {
-	node     Node
-	gap      time.Duration
-	duration time.Duration
-	scaleX   float64
-	scaleY   float64
+	node         Node
+	gap          time.Duration
+	duration     time.Duration
+	scaleX       float64
+	scaleY       float64
+	_rawMetadata rawMediaMetadata
 
 	xSet bool
 	ySet bool

@@ -21,13 +21,13 @@ func (p *Project) Encode(w io.Writer) error {
 		Title:                            "",
 		Description:                      "",
 		Author:                           "",
-		TargetLoudness:                   KeepZero(p._targetLoudness),
+		TargetLoudness:                   keepZero(p._targetLoudness),
 		ShouldApplyLoudnessNormalization: p._autoNormalizeLoudness,
 		VideoFormatFrameRate:             int(p._frameRate),
 		AudioFormatSampleRate:            44100,
 		AllowSubFrameEditing:             false,
-		Width:                            KeepZero(p._width),
-		Height:                           KeepZero(p._height),
+		Width:                            keepZero(p._width),
+		Height:                           keepZero(p._height),
 		Version:                          "8.0",
 		EditRate:                         editRate,
 		AuthoringClientName: rawAuthoringClientName{
@@ -95,37 +95,6 @@ func (p *Project) encodeRawTracks() []rawTrack {
 	}
 
 	return rawTracks
-
-	// timelineId := p.id.gen()
-
-	// trackObjs := []jobj{}
-	// trackAttributeObjs := []jobj{}
-
-	// for i, track := range p.Tracks {
-	// 	trackObjs = append(trackObjs, jobj{
-	// 		"trackIndex": i,
-	// 		"medias":     p.encodeTrackMedias(track),
-	// 	})
-
-	// 	trackAttributeObjs = append(trackAttributeObjs, jobj{
-	// 		"ident": track.Name,
-	// 	})
-	// }
-
-	// bgR, bgG, bgB, bgA := colorTo255(p._backgroundColor)
-
-	// return jobj{
-	// 	"id": timelineId,
-	// 	"sceneTrack": jobj{
-	// 		"scenes": []jobj{{
-	// 			"csml": jobj{
-	// 				"tracks": trackObjs,
-	// 			},
-	// 		}},
-	// 	},
-	// 	"trackAttributes": trackAttributeObjs,
-	// 	"backgroundColor": []uint32{bgR, bgG, bgB, bgA},
-	// }
 }
 
 func (p *Project) encodeRawTrackMedias(track *Track) []rawMedia {
@@ -135,12 +104,15 @@ func (p *Project) encodeRawTrackMedias(track *Track) []rawMedia {
 
 	for _, element := range track.Elements {
 		rMedia := rawMedia{
-			ID:            p.id.gen(),
-			Type:          element.node.camType(),
-			Start:         p.encodeTime(start + element.gap),
-			Duration:      p.encodeTime(element.duration),
-			MediaDuration: p.encodeTime(element.duration),
-			Scalar:        1,
+			ID:              p.id.gen(),
+			Type:            element.node.camType(),
+			Start:           p.encodeTime(start + element.gap),
+			Duration:        p.encodeTime(element.duration),
+			MediaDuration:   p.encodeTime(element.duration),
+			Scalar:          1,
+			Effects:         []interface{}{},
+			Metadata:        element._rawMetadata,
+			AnimationTracks: struct{}{},
 		}
 
 		switch node := element.node.(type) {
@@ -287,7 +259,6 @@ func (p *Project) encodeTrackMedias_old(track *Track) []jobj {
 		switch node := element.node.(type) {
 		case *Callout:
 			obj["_type"] = "Callout"
-			obj["def"] = node.encodeDef()
 		case *ImageFile:
 			obj["_type"] = "IMFile"
 			obj["src"] = p.mediaItemId[node.Src]
@@ -347,5 +318,5 @@ func (p *Project) coordY(height, posY int) int {
 }
 
 func (p *Project) encodeTime(dur time.Duration) int {
-	return int(dur.Seconds() * float64(p.editRate))
+	return int(dur.Milliseconds()) * (p.editRate / 1000)
 }

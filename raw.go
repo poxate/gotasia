@@ -4,13 +4,13 @@ type rawProject struct {
 	Title                            string                 `json:"title"`
 	Description                      string                 `json:"description"`
 	Author                           string                 `json:"author"`
-	TargetLoudness                   KeepZero               `json:"targetLoudness"`
+	TargetLoudness                   keepZero               `json:"targetLoudness"`
 	ShouldApplyLoudnessNormalization bool                   `json:"shouldApplyLoudnessNormalization"`
 	VideoFormatFrameRate             int                    `json:"videoFormatFrameRate"`
 	AudioFormatSampleRate            int                    `json:"audioFormatSampleRate"`
 	AllowSubFrameEditing             bool                   `json:"allowSubFrameEditing"`
-	Width                            KeepZero               `json:"width"`
-	Height                           KeepZero               `json:"height"`
+	Width                            keepZero               `json:"width"`
+	Height                           keepZero               `json:"height"`
 	Version                          string                 `json:"version"`
 	EditRate                         int                    `json:"editRate"`
 	AuthoringClientName              rawAuthoringClientName `json:"authoringClientName"`
@@ -56,7 +56,7 @@ type rawTimeline struct {
 	SceneTrack              rawSceneTrack        `json:"sceneTrack"`
 	TrackAttributes         []rawTrackAttribute  `json:"trackAttributes"`
 	CaptionAttributes       rawCaptionAttributes `json:"captionAttributes"`
-	Gain                    KeepZero             `json:"gain"`
+	Gain                    keepZero             `json:"gain"`
 	LegacyAttenuateAudioMix bool                 `json:"legacyAttenuateAudioMix"`
 	BackgroundColor         interface{}          `json:"backgroundColor"`
 }
@@ -93,19 +93,19 @@ type rawTrack struct {
 }
 
 type rawMedia struct {
-	ID   int     `json:"id"`
-	Type string  `json:"_type"`
-	Def  *rawDef `json:"def"`
-	// Attributes      Attributes      `json:"attributes"`
-	// Parameters      Parameters      `json:"parameters"`
-	Effects       []interface{} `json:"effects"`
-	Start         int           `json:"start"`
-	Duration      int           `json:"duration"`
-	MediaStart    int           `json:"mediaStart"`
-	MediaDuration int           `json:"mediaDuration"`
-	Scalar        int           `json:"scalar"`
-	// Metadata        MediaMetadata   `json:"metadata"`
-	// AnimationTracks AnimationTracks `json:"animationTracks"`
+	ID              int              `json:"id"`
+	Type            string           `json:"_type"`
+	Def             *rawDef          `json:"def"`
+	Attributes      rawAttributes    `json:"attributes"`
+	Parameters      rawParameters    `json:"parameters"`
+	Effects         []interface{}    `json:"effects"`
+	Start           int              `json:"start"`
+	Duration        int              `json:"duration"`
+	MediaStart      int              `json:"mediaStart"`
+	MediaDuration   int              `json:"mediaDuration"`
+	Scalar          int              `json:"scalar"`
+	Metadata        rawMediaMetadata `json:"metadata"`
+	AnimationTracks any              `json:"animationTracks"`
 }
 
 type rawTrackAttribute struct {
@@ -124,35 +124,104 @@ type rawTrackAttributeMetadata struct {
 }
 
 type rawDef struct {
-	Kind                 string   `json:"kind"`
-	Shape                string   `json:"shape"`
-	Style                string   `json:"style"`
-	CornerRadius         KeepZero `json:"corner-radius"`
-	EnableLigatures      KeepZero `json:"enable-ligatures"`
-	Height               KeepZero `json:"height"`
-	LineSpacing          KeepZero `json:"line-spacing"`
-	TextStrokeAlignment  KeepZero `json:"text-stroke-alignment"`
-	TextStrokeColorAlpha KeepZero `json:"text-stroke-color-alpha"`
-	TextStrokeColorBlue  KeepZero `json:"text-stroke-color-blue"`
-	TextStrokeColorGreen KeepZero `json:"text-stroke-color-green"`
-	TextStrokeColorRed   KeepZero `json:"text-stroke-color-red"`
-	TextStrokeWidth      KeepZero `json:"text-stroke-width"`
-	Width                KeepZero `json:"width"`
-	WordWrap             KeepZero `json:"word-wrap"`
-	HorizontalAlignment  string   `json:"horizontal-alignment"`
-	ResizeBehavior       string   `json:"resize-behavior"`
-	Text                 string   `json:"text"`
-	VerticalAlignment    string   `json:"vertical-alignment"`
-	Font                 rawFont  `json:"font"`
-	// TextAttributes       TextAttributes `json:"textAttributes"`
+	Kind                 string            `json:"kind"`
+	Shape                string            `json:"shape"`
+	Style                string            `json:"style"`
+	CornerRadius         keepZero          `json:"corner-radius"`
+	EnableLigatures      keepZero          `json:"enable-ligatures"`
+	FillColorBlue        *keepZero         `json:"fill-color-blue,omitempty"`
+	FillColorGreen       *keepZero         `json:"fill-color-green,omitempty"`
+	FillColorOpacity     *keepZero         `json:"fill-color-opacity,omitempty"`
+	FillColorRed         *keepZero         `json:"fill-color-red,omitempty"`
+	Height               keepZero          `json:"height"`
+	LineSpacing          keepZero          `json:"line-spacing"`
+	StrokeColorBlue      *keepZero         `json:"stroke-color-blue,omitempty"`
+	StrokeColorGreen     *keepZero         `json:"stroke-color-green,omitempty"`
+	StrokeColorOpacity   *keepZero         `json:"stroke-color-opacity,omitempty"`
+	StrokeColorRed       *keepZero         `json:"stroke-color-red,omitempty"`
+	StrokeWidth          *keepZero         `json:"stroke-width,omitempty"`
+	TailX                *keepZero         `json:"tail-x,omitempty"`
+	TailY                *keepZero         `json:"tail-y,omitempty"`
+	TextStrokeAlignment  keepZero          `json:"text-stroke-alignment"`
+	TextStrokeColorAlpha keepZero          `json:"text-stroke-color-alpha"`
+	TextStrokeColorBlue  keepZero          `json:"text-stroke-color-blue"`
+	TextStrokeColorGreen keepZero          `json:"text-stroke-color-green"`
+	TextStrokeColorRed   keepZero          `json:"text-stroke-color-red"`
+	TextStrokeWidth      keepZero          `json:"text-stroke-width"`
+	Width                keepZero          `json:"width"`
+	WordWrap             keepZero          `json:"word-wrap"`
+	FillStyle            *string           `json:"fill-style,omitempty"`
+	HorizontalAlignment  string            `json:"horizontal-alignment"`
+	ResizeBehavior       string            `json:"resize-behavior"`
+	StrokeStyle          *string           `json:"stroke-style,omitempty"`
+	Text                 string            `json:"text"`
+	VerticalAlignment    string            `json:"vertical-alignment"`
+	Font                 rawFont           `json:"font"`
+	TextAttributes       rawTextAttributes `json:"textAttributes"`
 }
 
 type rawFont struct {
-	ColorBlue  KeepZero `json:"color-blue"`
-	ColorGreen KeepZero `json:"color-green"`
-	ColorRed   KeepZero `json:"color-red"`
-	Size       KeepZero `json:"size"`
-	Tracking   KeepZero `json:"tracking"`
+	ColorBlue  keepZero `json:"color-blue"`
+	ColorGreen keepZero `json:"color-green"`
+	ColorRed   keepZero `json:"color-red"`
+	Size       keepZero `json:"size"`
+	Tracking   keepZero `json:"tracking"`
 	Name       string   `json:"name"`
 	Weight     string   `json:"weight"`
+}
+
+type rawTextAttributes struct {
+	Type      string                      `json:"type"`
+	Keyframes []Keyframe[[]TextAttribute] `json:"keyframes"`
+}
+
+type Keyframe[T any] struct {
+	EndTime  int `json:"endTime"`
+	Time     int `json:"time"`
+	Value    T   `json:"value"`
+	Duration int `json:"duration"`
+}
+
+type TextAttribute struct {
+	Name       string `json:"name"`
+	RangeEnd   int    `json:"rangeEnd"`
+	RangeStart int    `json:"rangeStart"`
+	Value      any    `json:"value"`
+	ValueType  string `json:"valueType"`
+}
+
+type rawAttributes struct {
+	Ident          string `json:"ident"`
+	AutoRotateText *bool  `json:"autoRotateText,omitempty"`
+}
+
+type rawParameters struct {
+	GeometryCrop0 keepZero `json:"geometryCrop0"`
+	GeometryCrop1 keepZero `json:"geometryCrop1"`
+	GeometryCrop2 keepZero `json:"geometryCrop2"`
+	GeometryCrop3 keepZero `json:"geometryCrop3"`
+}
+
+type rawMediaMetadata struct {
+	AudiateLinkedSession        *string      `json:"audiateLinkedSession,omitempty"`
+	ClipSpeedAttribute          *IsAutoSave  `json:"clipSpeedAttribute,omitempty"`
+	DefaultHAlign               *string      `json:"default-HAlign,omitempty"`
+	DefaultLineSpace            *CanvasZoom  `json:"default-LineSpace,omitempty"`
+	DefaultVAlign               *string      `json:"default-VAlign,omitempty"`
+	DefaultTextAttributes       *interface{} `json:"default-text-attributes,omitempty"`
+	DefaultTextStrokeColorBlue  *CanvasZoom  `json:"default-text-stroke-color-blue,omitempty"`
+	DefaultTextStrokeColorGreen *CanvasZoom  `json:"default-text-stroke-color-green,omitempty"`
+	DefaultTextStrokeColorRed   *CanvasZoom  `json:"default-text-stroke-color-red,omitempty"`
+	DefaultTextStrokeOpacity    *CanvasZoom  `json:"default-text-stroke-opacity,omitempty"`
+	DefaultTextStrokeWidth      *CanvasZoom  `json:"default-text-stroke-width,omitempty"`
+}
+
+type CanvasZoom struct {
+	Type  string `json:"type"`
+	Value int64  `json:"value"`
+}
+
+type IsAutoSave struct {
+	Type  string `json:"type"`
+	Value bool   `json:"value"`
 }

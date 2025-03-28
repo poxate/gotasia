@@ -38,11 +38,32 @@ func colorTo1Scale(c color.Color) (r, g, b, a float64) {
 	return fR, fG, fB, fA
 }
 
-type KeepZero float64
+func scale1ToColor(r, g, b float64) color.Color {
+	return color.NRGBA{
+		R: uint8(r * 255),
+		G: uint8(g * 255),
+		B: uint8(b * 255),
+		A: 255,
+	}
+}
 
-func (f KeepZero) MarshalJSON() ([]byte, error) {
+type keepZero float64
+
+func (f keepZero) MarshalJSON() ([]byte, error) {
 	if float64(f) == float64(int(f)) {
 		return []byte(strconv.FormatFloat(float64(f), 'f', 1, 32)), nil
 	}
-	return []byte(strconv.FormatFloat(float64(f), 'f', -1, 32)), nil
+	return []byte(strconv.FormatFloat(float64(f), 'f', -1, 64)), nil
+}
+
+func ref[T any](value T) *T {
+	return &value
+}
+
+type rawColor struct {
+	r, g, b float64
+}
+
+func (c rawColor) RGBA() (r, g, b, a uint32) {
+	return uint32(c.r * 255), uint32(c.g * 255), uint32(c.b * 255), 255
 }
