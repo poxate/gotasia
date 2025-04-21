@@ -203,17 +203,17 @@ type rawParameters struct {
 }
 
 type rawMediaMetadata struct {
-	AudiateLinkedSession        *string      `json:"audiateLinkedSession,omitempty"`
-	ClipSpeedAttribute          *IsAutoSave  `json:"clipSpeedAttribute,omitempty"`
-	DefaultHAlign               *string      `json:"default-HAlign,omitempty"`
-	DefaultLineSpace            *CanvasZoom  `json:"default-LineSpace,omitempty"`
-	DefaultVAlign               *string      `json:"default-VAlign,omitempty"`
-	DefaultTextAttributes       *interface{} `json:"default-text-attributes,omitempty"`
-	DefaultTextStrokeColorBlue  *CanvasZoom  `json:"default-text-stroke-color-blue,omitempty"`
-	DefaultTextStrokeColorGreen *CanvasZoom  `json:"default-text-stroke-color-green,omitempty"`
-	DefaultTextStrokeColorRed   *CanvasZoom  `json:"default-text-stroke-color-red,omitempty"`
-	DefaultTextStrokeOpacity    *CanvasZoom  `json:"default-text-stroke-opacity,omitempty"`
-	DefaultTextStrokeWidth      *CanvasZoom  `json:"default-text-stroke-width,omitempty"`
+	AudiateLinkedSession        string             `json:"audiateLinkedSession"`
+	ClipSpeedAttribute          ClipSpeedAttribute `json:"clipSpeedAttribute"`
+	DefaultHAlign               *string            `json:"default-HAlign,omitempty"`
+	DefaultLineSpace            *CanvasZoom        `json:"default-LineSpace,omitempty"`
+	DefaultVAlign               *string            `json:"default-VAlign,omitempty"`
+	DefaultTextAttributes       *interface{}       `json:"default-text-attributes,omitempty"`
+	DefaultTextStrokeColorBlue  *CanvasZoom        `json:"default-text-stroke-color-blue,omitempty"`
+	DefaultTextStrokeColorGreen *CanvasZoom        `json:"default-text-stroke-color-green,omitempty"`
+	DefaultTextStrokeColorRed   *CanvasZoom        `json:"default-text-stroke-color-red,omitempty"`
+	DefaultTextStrokeOpacity    *CanvasZoom        `json:"default-text-stroke-opacity,omitempty"`
+	DefaultTextStrokeWidth      *CanvasZoom        `json:"default-text-stroke-width,omitempty"`
 }
 
 type CanvasZoom struct {
@@ -222,6 +222,11 @@ type CanvasZoom struct {
 }
 
 type IsAutoSave struct {
+	Type  string `json:"type"`
+	Value bool   `json:"value"`
+}
+
+type ClipSpeedAttribute struct {
 	Type  string `json:"type"`
 	Value bool   `json:"value"`
 }

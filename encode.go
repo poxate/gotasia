@@ -6,8 +6,6 @@ import (
 	"io"
 	"path/filepath"
 	"time"
-
-	"github.com/sanity-io/litter"
 )
 
 func (p *Project) Encode(w io.Writer) error {
@@ -50,7 +48,7 @@ func (p *Project) Encode(w io.Writer) error {
 			CaptionAttributes: rawCaptionAttributes{
 				Enabled:                  true,
 				FontName:                 "Arial",
-				FontSize:                 64,
+				FontSize:                 32,
 				BackgroundColor:          []int{0, 0, 0, 191},
 				ForegroundColor:          []int{255, 255, 255, 255},
 				Lang:                     "en",
@@ -103,9 +101,13 @@ func (p *Project) encodeRawTrackMedias(track *Track) []rawMedia {
 	var start time.Duration
 
 	for _, element := range track.Elements {
+		if element.duration == 0 {
+			element.duration = 5 * time.Second
+		}
+
 		rMedia := rawMedia{
 			ID:              p.id.gen(),
-			Type:            element.node.camType(),
+			Type:            element.Node.camType(),
 			Start:           p.encodeTime(start + element.gap),
 			Duration:        p.encodeTime(element.duration),
 			MediaDuration:   p.encodeTime(element.duration),
@@ -114,8 +116,9 @@ func (p *Project) encodeRawTrackMedias(track *Track) []rawMedia {
 			Metadata:        element._rawMetadata,
 			AnimationTracks: struct{}{},
 		}
+		rMedia.Metadata.ClipSpeedAttribute.Type = "bool"
 
-		switch node := element.node.(type) {
+		switch node := element.Node.(type) {
 		case *Callout:
 			node.encodeIntoMedia(&rMedia)
 		}
@@ -131,6 +134,10 @@ func (p *Project) encodeTrackAttributes() []rawTrackAttribute {
 	attributes := []rawTrackAttribute{}
 
 	for _, track := range p.Tracks {
+		if track.Name == "" {
+			track.Name = ""
+		}
+
 		attributes = append(attributes, rawTrackAttribute{
 			Ident:       track.Name,
 			AudioMuted:  false,
@@ -146,131 +153,6 @@ func (p *Project) encodeTrackAttributes() []rawTrackAttribute {
 	}
 
 	return attributes
-}
-
-func (p *Project) encodeTrackMedias_old(track *Track) []jobj {
-	list := []jobj{}
-
-	var start time.Duration = 0
-	for _, element := range track.Elements {
-		start += element.gap
-
-		width := int(element.scaleX * float64(element.node.width()))
-		height := int(element.scaleY * float64(element.node.height()))
-
-		translateX := rawMaybeKeyframes[int]{Static: true, StaticValue: 0, Keyframe: rawKeyframes[int]{Type: "double"}}
-		if element.xSet {
-			translateX.StaticValue = p.coordX(int(width), element.x)
-		}
-
-		translateY := rawMaybeKeyframes[int]{Static: true, StaticValue: 0, Keyframe: rawKeyframes[int]{Type: "double"}}
-		if element.ySet {
-			translateY.StaticValue = p.coordY(int(height), element.y)
-		}
-
-		scaleX := rawMaybeKeyframes[float64]{Static: true, StaticValue: element.scaleX, Keyframe: rawKeyframes[float64]{Type: "double"}}
-		scaleY := rawMaybeKeyframes[float64]{Static: true, StaticValue: element.scaleY, Keyframe: rawKeyframes[float64]{Type: "double"}}
-
-		var animateStart time.Duration = start
-		lastScaleX := scaleX.StaticValue
-		lastScaleY := scaleY.StaticValue
-		for _, animation := range element.Animations {
-			if animation.scaleX != nil {
-				if scaleX.Static {
-					scaleX.Static = false
-					scaleX.Keyframe.DefaultValue = scaleX.StaticValue
-				}
-
-				scaleX.Keyframe.Keyframes = append(scaleX.Keyframe.Keyframes,
-					keyframe[float64]{
-						Time:     p.encodeTime(animateStart + animation.Gap),
-						EndTime:  p.encodeTime(animateStart + animation.Gap + animation.Duration),
-						Duration: p.encodeTime(animation.Duration),
-						Value:    *animation.scaleX,
-					},
-				)
-				lastScaleX = *animation.scaleX
-			}
-
-			if animation.scaleY != nil {
-				if scaleY.Static {
-					scaleY.Static = false
-					scaleY.Keyframe.DefaultValue = scaleY.StaticValue
-				}
-
-				scaleY.Keyframe.Keyframes = append(scaleY.Keyframe.Keyframes,
-					keyframe[float64]{
-						Time:     p.encodeTime(animateStart + animation.Gap),
-						EndTime:  p.encodeTime(animateStart + animation.Gap + animation.Duration),
-						Duration: p.encodeTime(animation.Duration),
-						Value:    *animation.scaleY,
-					},
-				)
-				lastScaleY = *animation.scaleY
-			}
-
-			if animation.x != nil {
-				if translateX.Static {
-					translateX.Static = false
-					translateX.Keyframe.DefaultValue = translateX.StaticValue
-				}
-
-				translateX.Keyframe.Keyframes = append(translateX.Keyframe.Keyframes,
-					keyframe[int]{
-						Time:     p.encodeTime(animateStart + animation.Gap),
-						EndTime:  p.encodeTime(animateStart + animation.Gap + animation.Duration),
-						Duration: p.encodeTime(animation.Duration),
-						Value:    p.coordX(int(lastScaleX*float64(element.node.width())), *animation.x),
-					},
-				)
-			}
-
-			if animation.y != nil {
-				if translateY.Static {
-					translateY.Static = false
-					translateY.Keyframe.DefaultValue = translateY.StaticValue
-				}
-
-				translateY.Keyframe.Keyframes = append(translateY.Keyframe.Keyframes,
-					keyframe[int]{
-						Time:     p.encodeTime(animateStart + animation.Gap),
-						EndTime:  p.encodeTime(animateStart + animation.Gap + animation.Duration),
-						Duration: p.encodeTime(animation.Duration),
-						Value:    p.coordY(int(lastScaleY*float64(element.node.height())), *animation.y),
-					},
-				)
-			}
-		}
-
-		obj := jobj{
-			"id":            p.id.gen(),
-			"start":         int(start.Seconds() * editRate),
-			"duration":      int(element.duration.Seconds() * editRate),
-			"mediaStart":    0,
-			"mediaDuration": int(element.duration.Seconds() * editRate),
-			"parameters": jobj{
-				"scale0":       scaleX,
-				"scale1":       scaleY,
-				"translation0": translateX,
-				"translation1": translateY,
-			},
-		}
-
-		switch node := element.node.(type) {
-		case *Callout:
-			obj["_type"] = "Callout"
-		case *ImageFile:
-			obj["_type"] = "IMFile"
-			obj["src"] = p.mediaItemId[node.Src]
-		default:
-			panic("unknown element type: " + litter.Sdump(element.node))
-		}
-
-		list = append(list, obj)
-		start += element.duration + 1
-	}
-
-	return list
 }
 
 func (p *Project) encodeSourcebin() []jobj {

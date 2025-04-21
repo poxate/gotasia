@@ -4,27 +4,27 @@ import (
 	"image/color"
 )
 
-type CalloutShape string
-type CalloutFillStyle string
+type CalloutShape int
+type CalloutFillStyle int
 type CalloutStrokeStyle string
-type FontWeight string
-type CalloutHorizontalAlignment string
-type CalloutVerticalAlignment string
+type FontWeight int
+type CalloutHorizontalAlignment int
+type CalloutVerticalAlignment int
 
 const (
-	CalloutShapeText           CalloutShape = "text"
-	CalloutShapeSpeechBubble1  CalloutShape = "speech-bubble"
-	CalloutShapeSpeechBubble2  CalloutShape = "speech-bubble2"
-	CalloutShapeThoughtBubble1 CalloutShape = "thought-bubble"
-	CalloutShapeThoughtBubble2 CalloutShape = "thought-bubble2"
-	CalloutShapeTextArrow1     CalloutShape = "text-arrow"
-	CalloutShapeTextArrow2     CalloutShape = "text-arrow2"
-	CalloutShapeTextRectangle  CalloutShape = "text-rectangle"
+	CalloutShapeText CalloutShape = iota
+	CalloutShapeSpeechBubble1
+	CalloutShapeSpeechBubble2
+	CalloutShapeThoughtBubble1
+	CalloutShapeThoughtBubble2
+	CalloutShapeTextArrow1
+	CalloutShapeTextArrow2
+	CalloutShapeTextRectangle
 )
 
 const (
-	CalloutFillSolid    CalloutFillStyle = "solid"
-	CalloutFillGradient CalloutFillStyle = "gradient"
+	CalloutFillSolid CalloutFillStyle = iota
+	CalloutFillGradient
 )
 
 const (
@@ -36,23 +36,23 @@ const (
 )
 
 const (
-	FontWeightRegular FontWeight = "Regular"
-	FontWeightBold    FontWeight = "Bold"
+	FontWeightRegular FontWeight = iota
+	FontWeightBold
 )
 
 const (
-	CalloutHorizontalAlignmentLeft   CalloutHorizontalAlignment = "left"
-	CalloutHorizontalAlignmentCenter CalloutHorizontalAlignment = "center"
-	CalloutHorizontalAlignmentRight  CalloutHorizontalAlignment = "right"
+	CalloutHorizontalAlignmentCenter CalloutHorizontalAlignment = 0
+	CalloutHorizontalAlignmentLeft   CalloutHorizontalAlignment = 1
+	CalloutHorizontalAlignmentRight  CalloutHorizontalAlignment = 2
 
-	CalloutVerticalAlignemntTop    CalloutVerticalAlignment = "top"
-	CalloutVerticalAlignemntCenter CalloutVerticalAlignment = "center"
-	CalloutVerticalAlignemntBottom CalloutVerticalAlignment = "bottom"
+	CalloutVerticalAlignmentCenter CalloutVerticalAlignment = 0
+	CalloutVerticalAlignmentTop    CalloutVerticalAlignment = 1
+	CalloutVerticalAlignmentBottom CalloutVerticalAlignment = 2
 )
 
 type Callout struct {
-	_text string // ignored if spans is not nil
-	Font  Font
+	Text string // ignored if Spans != nil
+	Font Font
 
 	Shape CalloutShape
 
@@ -66,8 +66,8 @@ type Callout struct {
 	StrokeWidth   float64
 	StrokeStyle   CalloutStrokeStyle
 
-	Width        float64
-	Height       float64
+	Width        float64 // Must be between 1 and 9999. If 0, it is rendered as 400px
+	Height       float64 // Must be between 1 and 9999. If 0, it is rendered as 250px
 	TailX        float64 // distance from the center of the callout along the x-axis, only used for speech and thought bubbles
 	TailY        float64 // distance from the center of the callout along the y-axis, only used for speech and thought bubbles
 	CornerRadius int     // only used for text-rectangle
@@ -96,49 +96,35 @@ type Font struct {
 	Weight   FontWeight
 }
 
-func NewCallout() *Callout {
-	return &Callout{
-		Width:               400,
-		Height:              250,
-		Shape:               CalloutShapeText,
-		CornerRadius:        8,
-		VerticalAlignment:   CalloutVerticalAlignemntCenter,
-		HorizontalAlignment: CalloutHorizontalAlignmentCenter,
-		_text:               "ABC",
-		FillOpacity:         1,
-		Font: Font{
-			Color:    color.White,
-			Size:     96,
-			Tracking: 0,
-			Name:     "Montserrat",
-			Weight:   "Regular",
-		},
-	}
-}
-
-func (c *Callout) SetText(newText string) *Callout {
-	c._text = newText
-	return c
-}
-
 func (c *Callout) width() int  { return int(c.Width) }
 func (c *Callout) height() int { return int(c.Height) }
 
 func (node *Callout) encodeIntoMedia(rMedia *rawMedia) {
-	var fontR, fontG, fontB float64
-	if raw, ok := node.Font.Color.(rawColor); ok {
-		fontR, fontG, fontB = raw.r, raw.g, raw.b
-	} else {
-		fontR, fontG, fontB, _ = colorTo1Scale(node.Font.Color)
+	font := node.Font.withDefaults()
+	var fontR, fontG, fontB, _ float64 = colorTo1Scale(font.Color)
+
+	width := node.Width
+	if width == 0 {
+		width = 400
+	}
+
+	height := node.Height
+	if height == 0 {
+		height = 250
+	}
+
+	cornerRadius := float64(node.CornerRadius)
+	if node.Shape == CalloutShapeText {
+		cornerRadius = 8
 	}
 
 	def := &rawDef{
 		Kind:                 "remix",
-		Shape:                string(node.Shape),
+		Shape:                node.Shape.string(),
 		Style:                "basic",
-		Width:                keepZero(node.Width),
-		Height:               keepZero(node.Height),
-		CornerRadius:         keepZero(node.CornerRadius),
+		Width:                keepZero(width),
+		Height:               keepZero(height),
+		CornerRadius:         keepZero(cornerRadius),
 		EnableLigatures:      1.0,
 		LineSpacing:          0.0,
 		TextStrokeAlignment:  2.0,
@@ -148,18 +134,18 @@ func (node *Callout) encodeIntoMedia(rMedia *rawMedia) {
 		TextStrokeColorRed:   0.0,
 		TextStrokeWidth:      0.0,
 		WordWrap:             1.0,
-		HorizontalAlignment:  string(node.HorizontalAlignment),
-		VerticalAlignment:    string(node.VerticalAlignment),
+		HorizontalAlignment:  node.HorizontalAlignment.string(),
+		VerticalAlignment:    node.VerticalAlignment.string(),
 		ResizeBehavior:       "resizeText",
-		Text:                 node._text,
+		Text:                 node.Text,
 		Font: rawFont{
 			ColorRed:   keepZero(fontR),
 			ColorGreen: keepZero(fontG),
 			ColorBlue:  keepZero(fontB),
-			Size:       keepZero(node.Font.Size),
-			Tracking:   keepZero(node.Font.Tracking),
-			Name:       node.Font.Name,
-			Weight:     string(node.Font.Weight),
+			Size:       keepZero(font.Size),
+			Tracking:   keepZero(font.Tracking),
+			Name:       font.Name,
+			Weight:     font.Weight.string(),
 		},
 		TextAttributes: rawTextAttributes{
 			Type:      "textAttributeList",
@@ -190,7 +176,7 @@ func (node *Callout) encodeIntoMedia(rMedia *rawMedia) {
 			def.StrokeColorBlue = ref(keepZero(b))
 		}
 
-		def.FillStyle = (*string)(&node.FillStyle)
+		def.FillStyle = ref(node.FillStyle.String())
 		def.FillColorOpacity = ref(keepZero(node.FillOpacity))
 		def.StrokeColorOpacity = ref(keepZero(node.StrokeOpacity))
 		def.StrokeWidth = (*keepZero)(&node.StrokeWidth)

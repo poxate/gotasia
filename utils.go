@@ -28,6 +28,8 @@ func boolToInt(b bool) int {
 func colorTo1Scale(c color.Color) (r, g, b, a float64) {
 	if c == nil {
 		return 0, 0, 0, 1
+	} else if r, ok := c.(rawColor); ok {
+		return r.r, r.g, r.b, 1
 	}
 
 	ir, ig, ib, ia := c.RGBA()

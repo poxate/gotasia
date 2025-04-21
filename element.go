@@ -5,7 +5,7 @@ import (
 )
 
 type Element struct {
-	node         Node
+	Node         Node
 	gap          time.Duration
 	duration     time.Duration
 	scaleX       float64
@@ -33,7 +33,7 @@ type Dimensions interface {
 
 func (p *Project) NewElement(node Node, animations []*Animation) *Element {
 	return &Element{
-		node:       node,
+		Node:       node,
 		duration:   5 * time.Second,
 		scaleX:     1,
 		scaleY:     1,
@@ -57,8 +57,8 @@ func (e *Element) SetScale(scale float64) *Element {
 
 func (e *Element) ScaleToFit(node Dimensions) *Element {
 	newScale := min(
-		float64(node.width())/float64(e.node.width()),
-		float64(node.height())/float64(e.node.height()),
+		float64(node.width())/float64(e.Node.width()),
+		float64(node.height())/float64(e.Node.height()),
 	)
 	e.scaleX = newScale
 	e.scaleY = newScale

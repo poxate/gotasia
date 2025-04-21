@@ -40,7 +40,7 @@ func (dec *Decoder) Decode() (*Project, error) {
 				gap:          p.decodeTime(media.Start) - start,
 				duration:     p.decodeTime(media.Duration),
 				Animations:   []*Animation{},
-				node:         dec.decodeNode(media),
+				Node:         dec.decodeNode(media),
 				_rawMetadata: media.Metadata,
 			})
 		}
@@ -53,29 +53,25 @@ func (p *Project) decodeTime(rawtime int) time.Duration {
 	return time.Duration(float64(rawtime) / float64(p.editRate) * float64(time.Second))
 }
 
-func (dec *Decoder) rawToDuration(rawtime int) time.Duration {
-	sec := float64(rawtime) / float64(dec.editRate)
-	return time.Duration(sec * float64(editRate))
-}
-
 func (dec *Decoder) decodeNode(media rawMedia) Node {
 	switch media.Type {
 	case "Callout":
-		c := NewCallout().SetText(media.Def.Text)
-		c.Shape = CalloutShape(media.Def.Shape)
-		c.Width = float64(media.Def.Width)
-		c.Height = float64(media.Def.Height)
-
-		c.Font = Font{
-			Color: rawColor{
-				r: float64(media.Def.Font.ColorRed),
-				g: float64(media.Def.Font.ColorBlue),
-				b: float64(media.Def.Font.ColorGreen),
+		c := &Callout{
+			Text:   media.Def.Text,
+			Shape:  calloutShapeFrom(media.Def.Shape),
+			Width:  float64(media.Def.Width),
+			Height: float64(media.Def.Height),
+			Font: Font{
+				Color: rawColor{
+					r: float64(media.Def.Font.ColorRed),
+					g: float64(media.Def.Font.ColorBlue),
+					b: float64(media.Def.Font.ColorGreen),
+				},
+				Size:     float64(media.Def.Font.Size),
+				Tracking: float64(media.Def.Font.Tracking),
+				Name:     media.Def.Font.Name,
+				Weight:   fontWeightFrom(media.Def.Font.Weight),
 			},
-			Size:     float64(media.Def.Font.Size),
-			Tracking: float64(media.Def.Font.Tracking),
-			Name:     media.Def.Font.Name,
-			Weight:   FontWeight(media.Def.Font.Weight),
 		}
 
 		if c.Shape != CalloutShapeText {
@@ -89,7 +85,7 @@ func (dec *Decoder) decodeNode(media rawMedia) Node {
 				g: float64(*media.Def.StrokeColorGreen),
 				b: float64(*media.Def.StrokeColorBlue),
 			}
-			c.FillStyle = CalloutFillStyle(*media.Def.FillStyle)
+			c.FillStyle = calloutFillStyleFrom(*media.Def.FillStyle)
 			c.FillOpacity = float64(*media.Def.FillColorOpacity)
 			c.StrokeOpacity = float64(*media.Def.StrokeColorOpacity)
 			c.StrokeWidth = float64(*media.Def.StrokeWidth)
@@ -100,56 +96,8 @@ func (dec *Decoder) decodeNode(media rawMedia) Node {
 
 		return c
 	default:
-		return NewCallout().SetText("[unhandled media type]: " + media.Type)
-	}
-}
-
-func (dec *Decoder) decodeAnimations(rawMedia *rawMedia_old) []*Animation {
-	animations := []*Animation{}
-	animationStarts := map[int]*Animation{}
-	loadAnimations(dec, &animations, animationStarts, rawMedia.Parameters.Translation0)
-	loadAnimations(dec, &animations, animationStarts, rawMedia.Parameters.Translation1)
-	loadAnimations(dec, &animations, animationStarts, rawMedia.Parameters.Translation2)
-	loadAnimations(dec, &animations, animationStarts, rawMedia.Parameters.Rotation1)
-	loadAnimations(dec, &animations, animationStarts, rawMedia.Parameters.Shear1)
-	loadAnimations(dec, &animations, animationStarts, rawMedia.Parameters.Scale0)
-	loadAnimations(dec, &animations, animationStarts, rawMedia.Parameters.Scale1)
-	loadAnimations(dec, &animations, animationStarts, rawMedia.Parameters.GeometryCrop0)
-	loadAnimations(dec, &animations, animationStarts, rawMedia.Parameters.GeometryCrop1)
-	loadAnimations(dec, &animations, animationStarts, rawMedia.Parameters.GeometryCrop2)
-	loadAnimations(dec, &animations, animationStarts, rawMedia.Parameters.GeometryCrop3)
-
-	for _, keyframe := range rawMedia.Parameters.Scale0.Keyframe.Keyframes {
-		animation := animationStarts[keyframe.Time]
-		animation.ToScaleX(keyframe.Value)
-	}
-
-	for _, keyframe := range rawMedia.Parameters.Scale1.Keyframe.Keyframes {
-		animation := animationStarts[keyframe.Time]
-		animation.ToScaleY(keyframe.Value)
-	}
-
-	return animations
-}
-
-func loadAnimations[T any](dec *Decoder, animations *[]*Animation, animationStarts map[int]*Animation, maybeKeyframes rawMaybeKeyframes[T]) {
-	if maybeKeyframes.Static {
-		return
-	}
-
-	var start time.Duration = 0
-	for _, keyframe := range maybeKeyframes.Keyframe.Keyframes {
-		if v, ok := animationStarts[keyframe.Time]; ok {
-			if v.Duration != dec.rawToDuration(keyframe.Duration) {
-				panic("overlaying keyframes with different durations")
-			} else if v.Duration != dec.rawToDuration(keyframe.EndTime-keyframe.Time) {
-				panic("overlaying keyframes with inconsistent time or endtime")
-			}
-			continue
+		return &Callout{
+			Text: "[unhandled media type]: " + media.Type,
 		}
-
-		animation := NewAnimation(dec.rawToDuration(keyframe.Time)-start, dec.rawToDuration(keyframe.Duration))
-		*animations = append(*animations, animation)
-		animationStarts[keyframe.Time] = animation
 	}
 }
